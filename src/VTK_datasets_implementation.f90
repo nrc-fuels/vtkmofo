@@ -1,6 +1,6 @@
 SUBMODULE (vtk_datasets) vtk_datasets_implementation
     USE Precision
-    USE vtk_cells, ONLY : vtkcell
+    USE Misc, ONLY : interpret_string, def_len
     IMPLICIT NONE
     !! author: Ian Porter
     !! date: 12/1/2017
@@ -18,6 +18,57 @@ SUBMODULE (vtk_datasets) vtk_datasets_implementation
 !! ****************
 !! Abstract dataset
 !! ****************
+        MODULE PROCEDURE abs_read_formatted
+        !! author: Ian Porter
+        !! date: 03/25/2019
+        !!
+        !! Deferred procedure for formatted read
+        !!
+        CHARACTER(LEN=def_len) :: line
+
+        ERROR STOP 'Should not be in abs_read_formatted. This procedure is only here b/c Intel requires it'
+        READ(unit,FMT=100,IOSTAT=iostat,IOMSG=iomsg) line
+100     FORMAT((a))
+        END PROCEDURE abs_read_formatted
+
+        MODULE PROCEDURE abs_read_unformatted
+        !! author: Ian Porter
+        !! date: 03/25/2019
+        !!
+        !! Deferred procedure for unformatted read
+        !!
+        CHARACTER(LEN=def_len) :: line
+
+        ERROR STOP 'Should not be in abs_read_unformatted. This procedure is only here b/c Intel requires it'
+        READ(unit,FMT=100,IOSTAT=iostat,IOMSG=iomsg) line
+100     FORMAT((a))
+        END PROCEDURE abs_read_unformatted
+
+        MODULE PROCEDURE abs_write_formatted
+        !! author: Ian Porter
+        !! date: 03/25/2019
+        !!
+        !! Deferred procedure for formatted write
+        !!
+        CHARACTER(LEN=def_len) :: line
+
+        ERROR STOP 'Should not be in abs_write_formatted. This procedure is only here b/c Intel requires it'
+        WRITE(unit,FMT=100,IOSTAT=iostat,IOMSG=iomsg) line
+100     FORMAT((a))
+        END PROCEDURE abs_write_formatted
+
+        MODULE PROCEDURE abs_write_unformatted
+        !! author: Ian Porter
+        !! date: 03/25/2019
+        !!
+        !! Deferred procedure for unformatted write
+        !!
+        CHARACTER(LEN=def_len) :: line
+
+        ERROR STOP 'Should not be in abs_write_unformatted. This procedure is only here b/c Intel requires it'
+        WRITE(unit,FMT=100,IOSTAT=iostat,IOMSG=iomsg) line
+100     FORMAT((a))
+        END PROCEDURE abs_write_unformatted
 
         MODULE PROCEDURE init
         !!
@@ -74,55 +125,105 @@ SUBMODULE (vtk_datasets) vtk_datasets_implementation
 ! *****************
 ! Structured Points
 ! *****************
-        MODULE PROCEDURE struct_pts_read
-        USE Misc, ONLY : interpret_string, def_len
-        !!
+        MODULE PROCEDURE struct_pts_read_formatted
         !! Reads the structured points dataset information from the .vtk file
         CHARACTER(LEN=def_len) :: line
         INTEGER(i4k),     DIMENSION(:), ALLOCATABLE :: ints
         REAL(r8k),        DIMENSION(:), ALLOCATABLE :: reals
         CHARACTER(LEN=:), DIMENSION(:), ALLOCATABLE :: chars
 
-        READ(unit,100,iostat=iostat) line
+        READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
         CALL interpret_string (line=line, datatype=[ 'C' ],         ignore='DATASET ',    separator=' ', chars=chars)
         me%name = TRIM(chars(1))
 
-        READ(unit,100,iostat=iostat) line
+        READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
         CALL interpret_string (line=line, datatype=[ 'I','I','I' ], ignore='DIMENSIONS ', separator=' ', ints=ints)
         me%dimensions = ints(1:3)
 
-        READ(unit,100,iostat=iostat) line
+        READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
         CALL interpret_string (line=line, datatype=[ 'R','R','R' ], ignore='ORIGIN ',     separator=' ', reals=reals)
         me%origin = reals(1:3)
 
-        READ(unit,100,iostat=iostat) line
+        READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
         CALL interpret_string (line=line, datatype=[ 'R','R','R' ], ignore='SPACING ',    separator=' ', reals=reals)
         me%spacing = reals(1:3)
 
 100     FORMAT((a))
-        END PROCEDURE struct_pts_read
+        END PROCEDURE struct_pts_read_formatted
 
-        MODULE PROCEDURE struct_pts_write
-        !!
+        MODULE PROCEDURE struct_pts_read_unformatted
+        !! Reads the structured points dataset information from the .vtk file
+        CHARACTER(LEN=def_len) :: line
+        INTEGER(i4k),     DIMENSION(:), ALLOCATABLE :: ints
+        REAL(r8k),        DIMENSION(:), ALLOCATABLE :: reals
+        CHARACTER(LEN=:), DIMENSION(:), ALLOCATABLE :: chars
+
+        READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
+        CALL interpret_string (line=line, datatype=[ 'C' ],         ignore='DATASET ',    separator=' ', chars=chars)
+        me%name = TRIM(chars(1))
+
+        READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
+        CALL interpret_string (line=line, datatype=[ 'I','I','I' ], ignore='DIMENSIONS ', separator=' ', ints=ints)
+        me%dimensions = ints(1:3)
+
+        READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
+        CALL interpret_string (line=line, datatype=[ 'R','R','R' ], ignore='ORIGIN ',     separator=' ', reals=reals)
+        me%origin = reals(1:3)
+
+        READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
+        CALL interpret_string (line=line, datatype=[ 'R','R','R' ], ignore='SPACING ',    separator=' ', reals=reals)
+        me%spacing = reals(1:3)
+
+100     FORMAT((a))
+        END PROCEDURE struct_pts_read_unformatted
+
+        MODULE PROCEDURE struct_pts_write_formatted
+        CHARACTER(LEN=:), ALLOCATABLE :: my_new_line
+        INTEGER(i4k), DIMENSION(:), ALLOCATABLE :: dims
+!        INTEGER(i4k) :: l
         !! Writes the structured points dataset information to the .vtk file
+        WRITE(unit,100,IOSTAT=iostat,IOMSG=iomsg) me%name, new_line('a')
+        WRITE(unit,101,IOSTAT=iostat,IOMSG=iomsg) me%dimensions, new_line('a')
+!        l = size(me%dimensions)
+!        WRITE(unit,*,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
+!        WRITE(unit,1001,IOSTAT=iostat,IOMSG=iomsg) me%dimensions, new_line('a')
+!        dims = me%dimensions
+!        READ(me%dimensions,101) my_new_line! // new_line('a')
+!        ALLOCATE(my_new_line,mold='                                  ')
+!        WRITE(my_new_line,101) me%dimensions
+!        my_new_line = my_new_line(1:LEN(my_new_line)-1) // new_line('a')
+!        WRITE(unit,105) TRIM(my_new_line)
+        WRITE(unit,102,IOSTAT=iostat,IOMSG=iomsg) me%origin
+        WRITE(unit,105,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
+        WRITE(unit,103,IOSTAT=iostat,IOMSG=iomsg) me%spacing
+        WRITE(unit,105,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
+100     FORMAT ('DATASET ',(a),(a))
+101     FORMAT ('DIMENSIONS ',3(i0,:,' '),(a))
+1001    FORMAT ('DIMENSIONS ',*(i0,' ',:),(a))
+102     FORMAT ('ORIGIN ',*(es13.6))
+103     FORMAT ('SPACING ',*(es13.6))
+105     FORMAT ((a))
 
-        WRITE(unit,100) me%name, new_line('a')
-        WRITE(unit,101) me%dimensions
-        WRITE(unit,105) new_line('a')
-        WRITE(unit,102) me%origin
-        WRITE(unit,105) new_line('a')
-        WRITE(unit,103) me%spacing
-        WRITE(unit,105) new_line('a')
+        END PROCEDURE struct_pts_write_formatted
+
+        MODULE PROCEDURE struct_pts_write_unformatted
+        !! Writes the structured points dataset information to the .vtk file
+        WRITE(unit,100,IOSTAT=iostat,IOMSG=iomsg) me%name, new_line('a')
+        WRITE(unit,101,IOSTAT=iostat,IOMSG=iomsg) me%dimensions
+        WRITE(unit,105,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
+        WRITE(unit,102,IOSTAT=iostat,IOMSG=iomsg) me%origin
+        WRITE(unit,105,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
+        WRITE(unit,103,IOSTAT=iostat,IOMSG=iomsg) me%spacing
+        WRITE(unit,105,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
 100     FORMAT ('DATASET ',(a),(a))
 101     FORMAT ('DIMENSIONS ',*(i0,' '))
 102     FORMAT ('ORIGIN ',*(es13.6))
 103     FORMAT ('SPACING ',*(es13.6))
 105     FORMAT ((a))
 
-        END PROCEDURE struct_pts_write
+        END PROCEDURE struct_pts_write_unformatted
 
         MODULE PROCEDURE struct_pts_setup
-        !!
         !! Sets up the structured points dataset with information
 
         me%name       = 'STRUCTURED_POINTS'
@@ -134,7 +235,6 @@ SUBMODULE (vtk_datasets) vtk_datasets_implementation
         END PROCEDURE struct_pts_setup
 
         MODULE PROCEDURE check_for_diffs_struct_pts
-        !!
         !! Function checks for differences in a structured points dataset
 
         diffs = .FALSE.
@@ -165,9 +265,7 @@ SUBMODULE (vtk_datasets) vtk_datasets_implementation
 ! ***************
 ! Structured Grid
 ! ***************
-        MODULE PROCEDURE struct_grid_read
-        USE Misc, ONLY : interpret_string, def_len
-        !!
+        MODULE PROCEDURE struct_grid_read_formatted
         !! Reads the structured grid dataset information from the .vtk file
         INTEGER(i4k)            :: i
         INTEGER(i4k), PARAMETER :: dim = 3
@@ -177,22 +275,22 @@ SUBMODULE (vtk_datasets) vtk_datasets_implementation
         REAL(r8k),        DIMENSION(:), ALLOCATABLE :: reals
         CHARACTER(LEN=:), DIMENSION(:), ALLOCATABLE :: chars
 
-        READ(unit,100,iostat=iostat) line
+        READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
         CALL interpret_string (line=line, datatype=[ 'C' ],         ignore='DATASET ',    separator=' ', chars=chars)
         me%name = TRIM(chars(1))
 
-        READ(unit,100,iostat=iostat) line
+        READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
         CALL interpret_string (line=line, datatype=[ 'I','I','I' ], ignore='DIMENSIONS ', separator=' ', ints=ints)
         me%dimensions = ints(1:3)
 
-        READ(unit,100,iostat=iostat) line
+        READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
         CALL interpret_string (line=line, datatype=[ 'I','C' ],     ignore='POINTS ',     separator=' ', ints=ints, chars=chars)
         me%n_points= ints(1); me%datatype = TRIM(chars(1))
 
         ALLOCATE(me%points(1:dim,1:me%n_points)); end_of_file  = .FALSE.
 
         get_points: DO i = 1, me%n_points
-            READ(unit,100,iostat=iostat) line
+            READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
             end_of_file = (is_iostat_end(iostat))
             IF (end_of_file) THEN
                 EXIT get_points
@@ -205,20 +303,59 @@ SUBMODULE (vtk_datasets) vtk_datasets_implementation
         END DO get_points
 
 100     FORMAT((a))
-        END PROCEDURE struct_grid_read
+        END PROCEDURE struct_grid_read_formatted
 
-        MODULE PROCEDURE struct_grid_write
-        !!
+        MODULE PROCEDURE struct_grid_read_unformatted
+        !! Reads the structured grid dataset information from the .vtk file
+        INTEGER(i4k)            :: i
+        INTEGER(i4k), PARAMETER :: dim = 3
+        LOGICAL                 :: end_of_File
+        CHARACTER(LEN=def_len)  :: line
+        INTEGER(i4k),     DIMENSION(:), ALLOCATABLE :: ints
+        REAL(r8k),        DIMENSION(:), ALLOCATABLE :: reals
+        CHARACTER(LEN=:), DIMENSION(:), ALLOCATABLE :: chars
+
+        READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
+        CALL interpret_string (line=line, datatype=[ 'C' ],         ignore='DATASET ',    separator=' ', chars=chars)
+        me%name = TRIM(chars(1))
+
+        READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
+        CALL interpret_string (line=line, datatype=[ 'I','I','I' ], ignore='DIMENSIONS ', separator=' ', ints=ints)
+        me%dimensions = ints(1:3)
+
+        READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
+        CALL interpret_string (line=line, datatype=[ 'I','C' ],     ignore='POINTS ',     separator=' ', ints=ints, chars=chars)
+        me%n_points= ints(1); me%datatype = TRIM(chars(1))
+
+        ALLOCATE(me%points(1:dim,1:me%n_points)); end_of_file  = .FALSE.
+
+        get_points: DO i = 1, me%n_points
+            READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
+            end_of_file = (is_iostat_end(iostat))
+            IF (end_of_file) THEN
+                EXIT get_points
+            ELSE IF (TRIM(line) == '') THEN
+                CYCLE     !! Skip blank lines
+            ELSE
+                CALL interpret_string (line=line, datatype=[ 'R','R','R' ], separator=' ', reals=reals)
+                me%points(1:dim,i) = reals(1:dim)
+            END IF
+        END DO get_points
+
+100     FORMAT((a))
+        END PROCEDURE struct_grid_read_unformatted
+
+        MODULE PROCEDURE struct_grid_write_formatted
         !! Writes the structured grid dataset information to the .vtk file
         INTEGER(i4k) :: i
 
-        WRITE(unit,100) me%name, new_line('a')
-        WRITE(unit,101) me%dimensions
-        WRITE(unit,105) new_line('a')
-        WRITE(unit,102) me%n_points, me%datatype, new_line('a')
+        WRITE(unit,100,IOSTAT=iostat,IOMSG=iomsg) me%name, new_line('a')
+        WRITE(unit,101,IOSTAT=iostat,IOMSG=iomsg) me%dimensions
+        WRITE(unit,105,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
+        WRITE(unit,102,IOSTAT=iostat,IOMSG=iomsg) me%n_points, me%datatype, new_line('a')
         DO i = 1, me%n_points
-            WRITE(unit,103) me%points(1:3,i)
-            WRITE(unit,105) new_line('a')
+            WRITE(unit,103,IOSTAT=iostat,IOMSG=iomsg) me%points(1:3,i)
+            WRITE(unit,105,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
         END DO
 
 100     FORMAT ('DATASET ',(a),(a))
@@ -227,10 +364,30 @@ SUBMODULE (vtk_datasets) vtk_datasets_implementation
 103     FORMAT (*(es13.6))
 105     FORMAT ((a))
 
-        END PROCEDURE struct_grid_write
+        END PROCEDURE struct_grid_write_formatted
+
+        MODULE PROCEDURE struct_grid_write_unformatted
+        !! Writes the structured grid dataset information to the .vtk file
+        INTEGER(i4k) :: i
+
+        WRITE(unit,100,IOSTAT=iostat,IOMSG=iomsg) me%name, new_line('a')
+        WRITE(unit,101,IOSTAT=iostat,IOMSG=iomsg) me%dimensions
+        WRITE(unit,105,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
+        WRITE(unit,102,IOSTAT=iostat,IOMSG=iomsg) me%n_points, me%datatype, new_line('a')
+        DO i = 1, me%n_points
+            WRITE(unit,103,IOSTAT=iostat,IOMSG=iomsg) me%points(1:3,i)
+            WRITE(unit,105,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
+        END DO
+
+100     FORMAT ('DATASET ',(a),(a))
+101     FORMAT ('DIMENSIONS ',*(i0,' '))
+102     FORMAT ('POINTS ',(i0),' ',(a),(a))
+103     FORMAT (*(es13.6))
+105     FORMAT ((a))
+
+        END PROCEDURE struct_grid_write_unformatted
 
         MODULE PROCEDURE struct_grid_setup
-        !!
         !! Sets up the structured grid dataset with information
 
         me%name       = 'STRUCTURED_GRID'
@@ -242,9 +399,7 @@ SUBMODULE (vtk_datasets) vtk_datasets_implementation
         END PROCEDURE struct_grid_setup
 
         MODULE PROCEDURE check_for_diffs_struct_grid
-        !!
         !! Function checks for differences in a structured grid dataset
-
         INTEGER(i4k) :: i, j
 
         diffs = .FALSE.
@@ -282,11 +437,8 @@ SUBMODULE (vtk_datasets) vtk_datasets_implementation
 ! ****************
 ! Rectilinear Grid
 ! ****************
-        MODULE PROCEDURE rectlnr_grid_read
-        USE Misc, ONLY : interpret_string, def_len
-        !!
+        MODULE PROCEDURE rectlnr_grid_read_formatted
         !! Reads the rectilinear grid dataset information from the .vtk file
-
         INTEGER(i4k)            :: i, j
         INTEGER(i4k), PARAMETER :: dim = 3
         LOGICAL                 :: end_of_File
@@ -297,11 +449,11 @@ SUBMODULE (vtk_datasets) vtk_datasets_implementation
         CHARACTER(LEN=13), DIMENSION(3), PARAMETER   :: descr_coord = &
           & [ 'X_COORDINATES', 'Y_COORDINATES', 'Z_COORDINATES' ]
 
-        READ(unit,100,iostat=iostat) line
+        READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
         CALL interpret_string (line=line, datatype=[ 'C' ],         ignore='DATASET ',     separator=' ', chars=chars)
         me%name = TRIM(chars(1))
 
-        READ(unit,100,iostat=iostat) line
+        READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
         CALL interpret_string (line=line, datatype=[ 'I','I','I' ], ignore='DIMENSIONS ',  separator=' ', ints=ints)
         me%dimensions = ints(1:3); ALLOCATE(me%x%coord(1:ints(1)), me%y%coord(1:ints(2)), me%z%coord(1:ints(3)))
 
@@ -309,7 +461,7 @@ SUBMODULE (vtk_datasets) vtk_datasets_implementation
 
         get_coords: DO
             i = i + 1
-            READ(unit,100,iostat=iostat) line
+            READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
             CALL interpret_string (line=line, datatype=[ 'I','C' ], ignore=descr_coord(i), separator=' ', ints=ints, chars=chars)
             SELECT CASE (i)
             CASE (1)
@@ -320,7 +472,7 @@ SUBMODULE (vtk_datasets) vtk_datasets_implementation
                 me%z%datatype = TRIM(chars(1))
             END SELECT
 
-            READ(unit,100,iostat=iostat) line
+            READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
             end_of_file = (is_iostat_end(iostat))
             IF (end_of_file) THEN
                 EXIT get_coords
@@ -344,24 +496,83 @@ SUBMODULE (vtk_datasets) vtk_datasets_implementation
         END DO get_coords
 
 100     FORMAT((a))
-        END PROCEDURE rectlnr_grid_read
+        END PROCEDURE rectlnr_grid_read_formatted
 
-        MODULE PROCEDURE rectlnr_grid_write
-        !!
+        MODULE PROCEDURE rectlnr_grid_read_unformatted
+        !! Reads the rectilinear grid dataset information from the .vtk file
+        INTEGER(i4k)            :: i, j
+        INTEGER(i4k), PARAMETER :: dim = 3
+        LOGICAL                 :: end_of_File
+        CHARACTER(LEN=def_len)  :: line
+        INTEGER(i4k),      DIMENSION(:), ALLOCATABLE :: ints
+        REAL(r8k),         DIMENSION(:), ALLOCATABLE :: reals
+        CHARACTER(LEN=:),  DIMENSION(:), ALLOCATABLE :: chars
+        CHARACTER(LEN=13), DIMENSION(3), PARAMETER   :: descr_coord = &
+          & [ 'X_COORDINATES', 'Y_COORDINATES', 'Z_COORDINATES' ]
+
+        READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
+        CALL interpret_string (line=line, datatype=[ 'C' ],         ignore='DATASET ',     separator=' ', chars=chars)
+        me%name = TRIM(chars(1))
+
+        READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
+        CALL interpret_string (line=line, datatype=[ 'I','I','I' ], ignore='DIMENSIONS ',  separator=' ', ints=ints)
+        me%dimensions = ints(1:3); ALLOCATE(me%x%coord(1:ints(1)), me%y%coord(1:ints(2)), me%z%coord(1:ints(3)))
+
+        i = 0
+
+        get_coords: DO
+            i = i + 1
+            READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
+            CALL interpret_string (line=line, datatype=[ 'I','C' ], ignore=descr_coord(i), separator=' ', ints=ints, chars=chars)
+            SELECT CASE (i)
+            CASE (1)
+                me%x%datatype = TRIM(chars(1))
+            CASE (2)
+                me%y%datatype = TRIM(chars(1))
+            CASE (3)
+                me%z%datatype = TRIM(chars(1))
+            END SELECT
+
+            READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
+            end_of_file = (is_iostat_end(iostat))
+            IF (end_of_file) THEN
+                EXIT get_coords
+            ELSE
+                j = 0
+                get_vals: DO
+                    j = j + 1
+                    CALL interpret_string (line=line, datatype=[ 'R' ], separator=' ', reals=reals)
+                    SELECT CASE (i)
+                    CASE (1)
+                        me%x%coord(j) = reals(1)
+                    CASE (2)
+                        me%y%coord(j) = reals(1)
+                    CASE (3)
+                        me%z%coord(j) = reals(1)
+                    END SELECT
+                    IF (line == '') EXIT get_vals
+                END DO get_vals
+            END IF
+            IF (i == dim) EXIT get_coords  !! Filled up array points
+        END DO get_coords
+
+100     FORMAT((a))
+        END PROCEDURE rectlnr_grid_read_unformatted
+
+        MODULE PROCEDURE rectlnr_grid_write_formatted
         !! Writes the rectilinear grid dataset information to the .vtk file
-
-        WRITE(unit,100) me%name, new_line('a')
-        WRITE(unit,101) me%dimensions
-        WRITE(unit,105) new_line('a')
-        WRITE(unit,102) me%dimensions(1), me%x%datatype, new_line('a')
-        WRITE(unit,110) me%x%coord
-        WRITE(unit,105) new_line('a')
-        WRITE(unit,103) me%dimensions(2), me%y%datatype, new_line('a')
-        WRITE(unit,110) me%y%coord
-        WRITE(unit,105) new_line('a')
-        WRITE(unit,104) me%dimensions(3), me%z%datatype, new_line('a')
-        WRITE(unit,110) me%z%coord
-        WRITE(unit,105) new_line('a')
+        WRITE(unit,100,IOSTAT=iostat,IOMSG=iomsg) me%name, new_line('a')
+        WRITE(unit,101,IOSTAT=iostat,IOMSG=iomsg) me%dimensions
+        WRITE(unit,105,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
+        WRITE(unit,102,IOSTAT=iostat,IOMSG=iomsg) me%dimensions(1), me%x%datatype, new_line('a')
+        WRITE(unit,110,IOSTAT=iostat,IOMSG=iomsg) me%x%coord
+        WRITE(unit,105,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
+        WRITE(unit,103,IOSTAT=iostat,IOMSG=iomsg) me%dimensions(2), me%y%datatype, new_line('a')
+        WRITE(unit,110,IOSTAT=iostat,IOMSG=iomsg) me%y%coord
+        WRITE(unit,105,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
+        WRITE(unit,104,IOSTAT=iostat,IOMSG=iomsg) me%dimensions(3), me%z%datatype, new_line('a')
+        WRITE(unit,110,IOSTAT=iostat,IOMSG=iomsg) me%z%coord
+        WRITE(unit,105,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
 
 100     FORMAT ('DATASET ',(a),(a))
 101     FORMAT ('DIMENSIONS ',*(i0,' '))
@@ -371,7 +582,32 @@ SUBMODULE (vtk_datasets) vtk_datasets_implementation
 105     FORMAT ((a))
 110     FORMAT (*(es13.6))
 
-        END PROCEDURE rectlnr_grid_write
+        END PROCEDURE rectlnr_grid_write_formatted
+
+        MODULE PROCEDURE rectlnr_grid_write_unformatted
+        !! Writes the rectilinear grid dataset information to the .vtk file
+        WRITE(unit,100,IOSTAT=iostat,IOMSG=iomsg) me%name, new_line('a')
+        WRITE(unit,101,IOSTAT=iostat,IOMSG=iomsg) me%dimensions
+        WRITE(unit,105,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
+        WRITE(unit,102,IOSTAT=iostat,IOMSG=iomsg) me%dimensions(1), me%x%datatype, new_line('a')
+        WRITE(unit,110,IOSTAT=iostat,IOMSG=iomsg) me%x%coord
+        WRITE(unit,105,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
+        WRITE(unit,103,IOSTAT=iostat,IOMSG=iomsg) me%dimensions(2), me%y%datatype, new_line('a')
+        WRITE(unit,110,IOSTAT=iostat,IOMSG=iomsg) me%y%coord
+        WRITE(unit,105,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
+        WRITE(unit,104,IOSTAT=iostat,IOMSG=iomsg) me%dimensions(3), me%z%datatype, new_line('a')
+        WRITE(unit,110,IOSTAT=iostat,IOMSG=iomsg) me%z%coord
+        WRITE(unit,105,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
+
+100     FORMAT ('DATASET ',(a),(a))
+101     FORMAT ('DIMENSIONS ',*(i0,' '))
+102     FORMAT ('X_COORDINATES ',i0,' ',(a),(a))
+103     FORMAT ('Y_COORDINATES ',i0,' ',(a),(a))
+104     FORMAT ('Z_COORDINATES ',i0,' ',(a),(a))
+105     FORMAT ((a))
+110     FORMAT (*(es13.6))
+
+        END PROCEDURE rectlnr_grid_write_unformatted
 
         MODULE PROCEDURE rectlnr_grid_setup
         !!
@@ -394,7 +630,6 @@ SUBMODULE (vtk_datasets) vtk_datasets_implementation
         END PROCEDURE rectlnr_grid_setup
 
         MODULE PROCEDURE check_for_diffs_rectlnr_grid
-        !!
         !! Function checks for differences in a rectilinear grid dataset
         INTEGER(i4k) :: i
 
@@ -442,32 +677,30 @@ SUBMODULE (vtk_datasets) vtk_datasets_implementation
 ! **************
 ! Polygonal Data
 ! **************
-        MODULE PROCEDURE polygonal_data_read
-        USE Misc,      ONLY : interpret_string, def_len
+        MODULE PROCEDURE polygonal_data_read_formatted
         USE vtk_cells, ONLY : poly_vertex, poly_line, polygon, triangle_strip
-        !!
         !! Reads the polygonal data dataset information from the .vtk file
-        INTEGER(i4k)                       :: i, j, n, descr_size, n_points
-        INTEGER(i4k), PARAMETER            :: dim = 3
-        LOGICAL                            :: end_of_File
-        CHARACTER(LEN=def_len)             :: line
-        CHARACTER(LEN=:), ALLOCATABLE      :: descr
+        INTEGER(i4k)                  :: i, j, n, descr_size, n_points
+        INTEGER(i4k), PARAMETER       :: dim = 3
+        LOGICAL                       :: end_of_File
+        CHARACTER(LEN=def_len)        :: line
+        CHARACTER(LEN=:), ALLOCATABLE :: descr
         INTEGER(i4k),      DIMENSION(:), ALLOCATABLE :: ints, dummy, points
         REAL(r8k),         DIMENSION(:), ALLOCATABLE :: reals
         CHARACTER(LEN=:),  DIMENSION(:), ALLOCATABLE :: chars
 
-        READ(unit,100,iostat=iostat) line
+        READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
         CALL interpret_string (line=line, datatype=[ 'C' ],         ignore='DATASET ',     separator=' ', chars=chars)
         me%name = TRIM(chars(1))
 
-        READ(unit,100,iostat=iostat) line
+        READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
         CALL interpret_string (line=line, datatype=[ 'I','C' ],     ignore='POINTS ',     separator=' ', ints=ints, chars=chars)
         me%n_points= ints(1); me%datatype = TRIM(chars(1))
 
         ALLOCATE(me%points(1:3,1:me%n_points)); i = 0
 write(0,*) 'before get_points'
         get_points: DO
-            READ(unit,100,iostat=iostat) line
+            READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
             end_of_file = (is_iostat_end(iostat))
             IF (end_of_file) THEN
                 EXIT get_points
@@ -487,7 +720,7 @@ write(0,*) 'before get_points'
         i = 0
 write(0,*) 'before get_keywords'
         get_keywords: DO
-            READ(unit,100,iostat=iostat) line
+            READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
             end_of_file = (is_iostat_end(iostat))
             IF (end_of_file) THEN
                 EXIT get_keywords
@@ -515,7 +748,7 @@ write(0,*) 'before get_keywords'
 
             DO i = 1, n
               write(0,*) 'i= ',i,' n= ',n
-                READ(unit,100,iostat=iostat) line
+                READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
                 end_of_file = (is_iostat_end(iostat))
                 IF (end_of_file) THEN
                     EXIT get_keywords
@@ -558,18 +791,133 @@ write(0,*) 'before get_keywords'
         END DO get_keywords
 write(0,*) 'after get_keywords'
 100     FORMAT((a))
-        END PROCEDURE polygonal_data_read
+        END PROCEDURE polygonal_data_read_formatted
 
-        MODULE PROCEDURE polygonal_data_write
-        !!
+        MODULE PROCEDURE polygonal_data_read_unformatted
+        USE vtk_cells, ONLY : poly_vertex, poly_line, polygon, triangle_strip
+        !! Reads the polygonal data dataset information from the .vtk file
+        INTEGER(i4k)                  :: i, j, n, descr_size, n_points
+        INTEGER(i4k), PARAMETER       :: dim = 3
+        LOGICAL                       :: end_of_File
+        CHARACTER(LEN=def_len)        :: line
+        CHARACTER(LEN=:), ALLOCATABLE :: descr
+        INTEGER(i4k),      DIMENSION(:), ALLOCATABLE :: ints, dummy, points
+        REAL(r8k),         DIMENSION(:), ALLOCATABLE :: reals
+        CHARACTER(LEN=:),  DIMENSION(:), ALLOCATABLE :: chars
+
+        READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
+        CALL interpret_string (line=line, datatype=[ 'C' ],         ignore='DATASET ',     separator=' ', chars=chars)
+        me%name = TRIM(chars(1))
+
+        READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
+        CALL interpret_string (line=line, datatype=[ 'I','C' ],     ignore='POINTS ',     separator=' ', ints=ints, chars=chars)
+        me%n_points= ints(1); me%datatype = TRIM(chars(1))
+
+        ALLOCATE(me%points(1:3,1:me%n_points)); i = 0
+write(0,*) 'before get_points'
+        get_points: DO
+            READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
+            end_of_file = (is_iostat_end(iostat))
+            IF (end_of_file) THEN
+                EXIT get_points
+            ELSE IF (TRIM(line) == '') THEN
+                CYCLE     !! Skip blank lines
+            ELSE
+                i = i + 1
+                write(0,*) 'i= ',i
+                write(0,*) 'line= ',TRIM(line)
+                CALL interpret_string (line=line, datatype=[ 'R','R','R' ], separator=' ', reals=reals)
+                write(0,*) 'after interpret_string'
+                me%points(1:dim,i) = reals(1:dim)
+            END IF
+            IF (i == SIZE(me%points,DIM=2)) EXIT get_points  !! Filled up array points
+        END DO get_points
+
+        i = 0
+write(0,*) 'before get_keywords'
+        get_keywords: DO
+            READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
+            end_of_file = (is_iostat_end(iostat))
+            IF (end_of_file) THEN
+                EXIT get_keywords
+            ELSE IF (TRIM(line) == '') THEN
+                CYCLE     !! Skip blank lines
+            END IF
+
+            CALL interpret_string (line=line, datatype=[ 'C','I','I' ], separator=' ', ints=ints, chars=chars)
+            descr = TRIM(chars(1)); n = ints(1); descr_size = ints(2)
+
+            SELECT CASE (descr)
+            CASE ('VERTICES')
+                ALLOCATE(poly_vertex::me%vertices(1:n))
+            CASE ('LINES')
+                ALLOCATE(poly_line::me%lines(1:n))
+            CASE ('POLYGONS')
+                ALLOCATE(polygon::me%polygons(1:n))
+            CASE ('TRIANGLE_STRIPS')
+                ALLOCATE(triangle_strip::me%triangles(1:n))
+            CASE ('POINT_DATA', 'CELL_DATA')
+                EXIT get_keywords !! No additional information was provided for polygonal_data
+            CASE DEFAULT
+                ERROR STOP 'Bad value read for additional polygon information. Terminated in polygonal_data_read'
+            END SELECT
+
+            DO i = 1, n
+              write(0,*) 'i= ',i,' n= ',n
+                READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
+                end_of_file = (is_iostat_end(iostat))
+                IF (end_of_file) THEN
+                    EXIT get_keywords
+                ELSE
+                    ! Extract values
+                    j = 0; IF(ALLOCATED(points)) DEALLOCATE(points)
+                    get_vals: DO
+                        j = j + 1
+                        write(0,*) 'j= ',j
+                        CALL interpret_string (line=line, datatype=[ 'I' ], separator=' ', ints=ints)
+                        IF (j == 1) THEN
+                            n_points = ints(1)
+                        ELSE
+                            ALLOCATE(dummy(1:j-1))
+                            dummy(j-1) = ints(1)
+                            IF (j > 2) dummy(1:j-2) = points
+                            IF (ALLOCATED(points)) DEALLOCATE(points)
+                            CALL MOVE_ALLOC(dummy, points)
+                        END IF
+                        IF (line == '') EXIT get_vals
+                    END DO get_vals
+
+                    ! Save values
+                    SELECT CASE (descr)
+                    CASE ('VERTICES')
+                        me%vertices(i)%n_points  = n_points
+                        me%vertices(i)%points    = points
+                    CASE ('LINES')
+                        me%lines(i)%n_points     = n_points
+                        me%lines(i)%points       = points
+                    CASE ('POLYGONS')
+                        me%polygons(i)%n_points  = n_points
+                        me%polygons(i)%points    = points
+                    CASE ('TRIANGLE_STRIPS')
+                        me%triangles(i)%n_points = n_points
+                        me%triangles(i)%points   = points
+                    END SELECT
+                END IF
+            END DO
+        END DO get_keywords
+write(0,*) 'after get_keywords'
+100     FORMAT((a))
+        END PROCEDURE polygonal_data_read_unformatted
+
+        MODULE PROCEDURE polygonal_data_write_formatted
         !! Writes the polygonal data dataset information to the .vtk file
         INTEGER(i4k) :: i, n, size_cnt
 
-        WRITE(unit,100) me%name, new_line('a')
-        WRITE(unit,101) me%n_points, me%datatype, new_line('a')
+        WRITE(unit,100,IOSTAT=iostat,IOMSG=iomsg) me%name, new_line('a')
+        WRITE(unit,101,IOSTAT=iostat,IOMSG=iomsg) me%n_points, me%datatype, new_line('a')
 
         DO i = 1, me%n_points
-            WRITE(unit,102) me%points(1:3,i), new_line('a')
+            WRITE(unit,102,IOSTAT=iostat,IOMSG=iomsg) me%points(1:3,i), new_line('a')
         END DO
 
         !! The following options are not required inputs
@@ -581,9 +929,9 @@ write(0,*) 'after get_keywords'
                 size_cnt = size_cnt + me%vertices(i)%n_points
             END DO
             ! Write values
-            WRITE(unit,103) n, size_cnt, new_line('a')
+            WRITE(unit,103,IOSTAT=iostat,IOMSG=iomsg) n, size_cnt, new_line('a')
             DO i = 1, n
-                WRITE(unit,FMT='(DT)') me%vertices(i)
+                WRITE(unit,FMT='(DT)',IOSTAT=iostat,IOMSG=iomsg) me%vertices(i)
             END DO
         END IF
 
@@ -595,9 +943,9 @@ write(0,*) 'after get_keywords'
                 size_cnt = size_cnt + me%lines(i)%n_points
             END DO
             ! Write values
-            WRITE(unit,104) n, size_cnt, new_line('a')
+            WRITE(unit,104,IOSTAT=iostat,IOMSG=iomsg) n, size_cnt, new_line('a')
             DO i = 1, n
-                WRITE(unit,FMT='(DT)') me%lines(i)
+                WRITE(unit,FMT='(DT)',IOSTAT=iostat,IOMSG=iomsg) me%lines(i)
             END DO
         END IF
 
@@ -609,9 +957,9 @@ write(0,*) 'after get_keywords'
                 size_cnt = size_cnt + me%polygons(i)%n_points
             END DO
             ! Write values
-            WRITE(unit,105) n, size_cnt, new_line('a')
+            WRITE(unit,105,IOSTAT=iostat,IOMSG=iomsg) n, size_cnt, new_line('a')
             DO i = 1, n
-                WRITE(unit,FMT='(DT)') me%polygons(i)
+                WRITE(unit,FMT='(DT)',IOSTAT=iostat,IOMSG=iomsg) me%polygons(i)
             END DO
         END IF
 
@@ -623,9 +971,9 @@ write(0,*) 'after get_keywords'
                 size_cnt = size_cnt + me%triangles(i)%n_points
             END DO
             ! Write values
-            WRITE(unit,106) n, size_cnt, new_line('a')
+            WRITE(unit,106,IOSTAT=iostat,IOMSG=iomsg) n, size_cnt, new_line('a')
             DO i = 1, n
-                WRITE(unit,FMT='(DT)') me%triangles(i)
+                WRITE(unit,FMT='(DT)',IOSTAT=iostat,IOMSG=iomsg) me%triangles(i)
             END DO
         END IF
 
@@ -637,10 +985,87 @@ write(0,*) 'after get_keywords'
 105     FORMAT ('POLYGONS ',(i0),' ',(i0),(a))
 106     FORMAT ('TRIANGLE_STRIPS ',(i0),' ',(i0),(a))
 
-        END PROCEDURE polygonal_data_write
+        END PROCEDURE polygonal_data_write_formatted
+
+        MODULE PROCEDURE polygonal_data_write_unformatted
+        !! Writes the polygonal data dataset information to the .vtk file
+        INTEGER(i4k) :: i, n, size_cnt
+
+        WRITE(unit,100,IOSTAT=iostat,IOMSG=iomsg) me%name, new_line('a')
+        WRITE(unit,101,IOSTAT=iostat,IOMSG=iomsg) me%n_points, me%datatype, new_line('a')
+
+        DO i = 1, me%n_points
+            WRITE(unit,102,IOSTAT=iostat,IOMSG=iomsg) me%points(1:3,i), new_line('a')
+        END DO
+
+        !! The following options are not required inputs
+        IF (ALLOCATED(me%vertices)) THEN
+            ! Calculate sizes
+            n        = SIZE(me%vertices,DIM=1)
+            size_cnt = n
+            DO i = 1, n
+                size_cnt = size_cnt + me%vertices(i)%n_points
+            END DO
+            ! Write values
+            WRITE(unit,103,IOSTAT=iostat,IOMSG=iomsg) n, size_cnt, new_line('a')
+            DO i = 1, n
+                WRITE(unit,FMT='(DT)',IOSTAT=iostat,IOMSG=iomsg) me%vertices(i)
+            END DO
+        END IF
+
+        IF (ALLOCATED(me%lines)) THEN
+            ! Calculate sizes
+            n        = SIZE(me%lines,DIM=1)
+            size_cnt = n
+            DO i = 1, n
+                size_cnt = size_cnt + me%lines(i)%n_points
+            END DO
+            ! Write values
+            WRITE(unit,104,IOSTAT=iostat,IOMSG=iomsg) n, size_cnt, new_line('a')
+            DO i = 1, n
+                WRITE(unit,FMT='(DT)',IOSTAT=iostat,IOMSG=iomsg) me%lines(i)
+            END DO
+        END IF
+
+        IF (ALLOCATED(me%polygons)) THEN
+            ! Calculate sizes
+            n        = SIZE(me%polygons,DIM=1)
+            size_cnt = n
+            DO i = 1, n
+                size_cnt = size_cnt + me%polygons(i)%n_points
+            END DO
+            ! Write values
+            WRITE(unit,105,IOSTAT=iostat,IOMSG=iomsg) n, size_cnt, new_line('a')
+            DO i = 1, n
+                WRITE(unit,FMT='(DT)',IOSTAT=iostat,IOMSG=iomsg) me%polygons(i)
+            END DO
+        END IF
+
+        IF (ALLOCATED(me%triangles)) THEN
+            ! Calculate sizes
+            n        = SIZE(me%triangles,DIM=1)
+            size_cnt = n
+            DO i = 1, n
+                size_cnt = size_cnt + me%triangles(i)%n_points
+            END DO
+            ! Write values
+            WRITE(unit,106,IOSTAT=iostat,IOMSG=iomsg) n, size_cnt, new_line('a')
+            DO i = 1, n
+                WRITE(unit,FMT='(DT)',IOSTAT=iostat,IOMSG=iomsg) me%triangles(i)
+            END DO
+        END IF
+
+100     FORMAT ('DATASET ',(a),(a))
+101     FORMAT ('POINTS ',(i0),' ',(a),(a))
+102     FORMAT (3(es13.6),(a))
+103     FORMAT ('VERTICES ',(i0),' ',(i0),(a))
+104     FORMAT ('LINES ',(i0),' ',(i0),(a))
+105     FORMAT ('POLYGONS ',(i0),' ',(i0),(a))
+106     FORMAT ('TRIANGLE_STRIPS ',(i0),' ',(i0),(a))
+
+        END PROCEDURE polygonal_data_write_unformatted
 
         MODULE PROCEDURE polygonal_data_setup
-        !!
         !! Sets up the polygonal data dataset with information
 
         me%name       = 'POLYDATA'
@@ -656,10 +1081,8 @@ write(0,*) 'after get_keywords'
 ! *****************
 ! Unstructured Grid
 ! *****************
-        MODULE PROCEDURE unstruct_grid_read
-        USE Misc,      ONLY : interpret_string, def_len
+        MODULE PROCEDURE unstruct_grid_read_formatted
         USE vtk_cells, ONLY : vtkcell, poly_vertex, set_cell_type
-        !!
         !! Reads the unstructured grid dataset information from the .vtk file
         CLASS(vtkcell), ALLOCATABLE :: dummy_cell
         INTEGER(i4k)                :: i
@@ -674,18 +1097,18 @@ write(0,*) 'after get_keywords'
         END TYPE temp_points
         TYPE (temp_points), DIMENSION(:), ALLOCATABLE :: read_points
 
-        READ(unit,100,iostat=iostat) line
+        READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
         CALL interpret_string (line=line, datatype=[ 'C' ],         ignore='DATASET ',     separator=' ', chars=chars)
         me%name = TRIM(chars(1))
 
-        READ(unit,100,iostat=iostat) line
+        READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
         CALL interpret_string (line=line, datatype=[ 'I','C' ],     ignore='POINTS ',     separator=' ', ints=ints, chars=chars)
         me%n_points= ints(1); me%datatype = TRIM(chars(1))
 
         ALLOCATE(me%points(1:3,1:me%n_points)); end_of_file = .FALSE.
 
         get_points: DO i = 1, me%n_points
-            READ(unit,100,iostat=iostat) line
+            READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
             end_of_file = (is_iostat_end(iostat))
             IF (end_of_file) THEN
                 EXIT get_points
@@ -698,7 +1121,7 @@ write(0,*) 'after get_keywords'
         END DO get_points
 
         ! Get the cell information
-        READ(unit,100,iostat=iostat) line
+        READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
         CALL interpret_string (line=line, datatype=[ 'I','I' ], ignore='POINTS ', separator=' ', ints=ints)
         me%n_cells = ints(1); me%size = ints(2); ALLOCATE(read_points(1:ints(1)))
         ALLOCATE(me%cell_list(1:me%n_cells))
@@ -713,13 +1136,13 @@ write(0,*) 'after get_keywords'
         END DO get_cells
 
         ! Get the cell type information
-        READ(unit,100,iostat=iostat) line
+        READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
         CALL interpret_string (line=line, datatype=[ 'I' ], ignore='CELL_TYPES ', separator=' ', ints=ints)
         me%n_cell_types = ints(1)
 
         end_of_file = .FALSE.
         get_cell_type: DO i = 1, me%n_cell_types
-            READ(unit,100,iostat=iostat) line
+            READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
             end_of_file = (is_iostat_end(iostat))
             IF (end_of_file) THEN
                 EXIT get_cell_type
@@ -735,29 +1158,107 @@ write(0,*) 'after get_keywords'
         END DO get_cell_type
 
 100     FORMAT((a))
-        END PROCEDURE unstruct_grid_read
+        END PROCEDURE unstruct_grid_read_formatted
 
-        MODULE PROCEDURE unstruct_grid_write
-        !!
+        MODULE PROCEDURE unstruct_grid_read_unformatted
+        USE vtk_cells, ONLY : vtkcell, poly_vertex, set_cell_type
+        !! Reads the unstructured grid dataset information from the .vtk file
+        CLASS(vtkcell), ALLOCATABLE :: dummy_cell
+        INTEGER(i4k)                :: i
+        INTEGER(i4k), PARAMETER     :: dim = 3
+        LOGICAL                     :: end_of_File
+        CHARACTER(LEN=def_len)      :: line
+        INTEGER(i4k),      DIMENSION(:), ALLOCATABLE :: ints
+        REAL(r8k),         DIMENSION(:), ALLOCATABLE :: reals
+        CHARACTER(LEN=:),  DIMENSION(:), ALLOCATABLE :: chars
+        TYPE temp_points
+            INTEGER(i4k), DIMENSION(:), ALLOCATABLE  :: points
+        END TYPE temp_points
+        TYPE (temp_points), DIMENSION(:), ALLOCATABLE :: read_points
+
+        READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
+        CALL interpret_string (line=line, datatype=[ 'C' ],         ignore='DATASET ',     separator=' ', chars=chars)
+        me%name = TRIM(chars(1))
+
+        READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
+        CALL interpret_string (line=line, datatype=[ 'I','C' ],     ignore='POINTS ',     separator=' ', ints=ints, chars=chars)
+        me%n_points= ints(1); me%datatype = TRIM(chars(1))
+
+        ALLOCATE(me%points(1:3,1:me%n_points)); end_of_file = .FALSE.
+
+        get_points: DO i = 1, me%n_points
+            READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
+            end_of_file = (is_iostat_end(iostat))
+            IF (end_of_file) THEN
+                EXIT get_points
+            ELSE IF (TRIM(line) == '') THEN
+                CYCLE     !! Skip blank lines
+            ELSE
+                CALL interpret_string (line=line, datatype=[ 'R','R','R' ], separator=' ', reals=reals)
+                me%points(1:dim,i) = reals(1:dim)
+            END IF
+        END DO get_points
+
+        ! Get the cell information
+        READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
+        CALL interpret_string (line=line, datatype=[ 'I','I' ], ignore='POINTS ', separator=' ', ints=ints)
+        me%n_cells = ints(1); me%size = ints(2); ALLOCATE(read_points(1:ints(1)))
+        ALLOCATE(me%cell_list(1:me%n_cells))
+
+        end_of_file = .FALSE.
+        get_cells: DO i = 1, me%n_cells
+            !! Temporary work around
+            IF (ALLOCATED(dummy_cell)) DEALLOCATE(dummy_cell)
+            ALLOCATE(poly_vertex::dummy_cell)
+            READ(unit,FMT='(DT)') dummy_cell
+            read_points(i)%points = dummy_cell%points
+        END DO get_cells
+
+        ! Get the cell type information
+        READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
+        CALL interpret_string (line=line, datatype=[ 'I' ], ignore='CELL_TYPES ', separator=' ', ints=ints)
+        me%n_cell_types = ints(1)
+
+        end_of_file = .FALSE.
+        get_cell_type: DO i = 1, me%n_cell_types
+            READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
+            end_of_file = (is_iostat_end(iostat))
+            IF (end_of_file) THEN
+                EXIT get_cell_type
+            ELSE IF (TRIM(line) == '') THEN
+                CYCLE     !! Skip blank lines
+            ELSE
+                CALL interpret_string (line=line, datatype=[ 'I' ], separator=' ', ints=ints)
+                dummy_cell = set_cell_type (ints(1))
+                ALLOCATE(me%cell_list(i)%cell,mold=dummy_cell)
+                CALL me%cell_list(i)%cell%setup (read_points(i)%points)
+                DEALLOCATE(dummy_cell)
+            END IF
+        END DO get_cell_type
+
+100     FORMAT((a))
+        END PROCEDURE unstruct_grid_read_unformatted
+
+        MODULE PROCEDURE unstruct_grid_write_formatted
         !! Writes the unstructured grid dataset information from the .vtk file
         INTEGER(i4k) :: i
 
-        WRITE(unit,100) me%name, new_line('a')
-        WRITE(unit,101) me%n_points, me%datatype, new_line('a')
+        WRITE(unit,100,IOSTAT=iostat,IOMSG=iomsg) me%name, new_line('a')
+        WRITE(unit,101,IOSTAT=iostat,IOMSG=iomsg) me%n_points, me%datatype, new_line('a')
 
         DO i = 1, me%n_points
-            WRITE(unit,102) me%points(1:3,i)
-            WRITE(unit,110) new_line('a')
+            WRITE(unit,102,IOSTAT=iostat,IOMSG=iomsg) me%points(1:3,i)
+            WRITE(unit,110,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
         END DO
 
-        WRITE(unit,103) me%n_cells, me%size, new_line('a')
+        WRITE(unit,103,IOSTAT=iostat,IOMSG=iomsg) me%n_cells, me%size, new_line('a')
         DO i = 1, me%n_cells
-            WRITE(unit,FMT='(DT)') me%cell_list(i)%cell
+            WRITE(unit,FMT='(DT)',IOSTAT=iostat,IOMSG=iomsg) me%cell_list(i)%cell
         END DO
 
-        WRITE(unit,104) me%n_cell_types, new_line('a')
+        WRITE(unit,104,IOSTAT=iostat,IOMSG=iomsg) me%n_cell_types, new_line('a')
         DO i = 1, me%n_cell_types
-            WRITE(unit,105) me%cell_list(i)%cell%type, new_line('a')
+            WRITE(unit,105,IOSTAT=iostat,IOMSG=iomsg) me%cell_list(i)%cell%type, new_line('a')
         END DO
 
 100     FORMAT ('DATASET ',(a),(a))
@@ -768,10 +1269,41 @@ write(0,*) 'after get_keywords'
 105     FORMAT (' ',i0,(a))
 110     FORMAT ((a))
 
-        END PROCEDURE unstruct_grid_write
+        END PROCEDURE unstruct_grid_write_formatted
+
+        MODULE PROCEDURE unstruct_grid_write_unformatted
+        !! Writes the unstructured grid dataset information from the .vtk file
+        INTEGER(i4k) :: i
+
+        WRITE(unit,100,IOSTAT=iostat,IOMSG=iomsg) me%name, new_line('a')
+        WRITE(unit,101,IOSTAT=iostat,IOMSG=iomsg) me%n_points, me%datatype, new_line('a')
+
+        DO i = 1, me%n_points
+            WRITE(unit,102,IOSTAT=iostat,IOMSG=iomsg) me%points(1:3,i)
+            WRITE(unit,110,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
+        END DO
+
+        WRITE(unit,103,IOSTAT=iostat,IOMSG=iomsg) me%n_cells, me%size, new_line('a')
+        DO i = 1, me%n_cells
+            WRITE(unit,FMT='(DT)',IOSTAT=iostat,IOMSG=iomsg) me%cell_list(i)%cell
+        END DO
+
+        WRITE(unit,104,IOSTAT=iostat,IOMSG=iomsg) me%n_cell_types, new_line('a')
+        DO i = 1, me%n_cell_types
+            WRITE(unit,105,IOSTAT=iostat,IOMSG=iomsg) me%cell_list(i)%cell%type, new_line('a')
+        END DO
+
+100     FORMAT ('DATASET ',(a),(a))
+101     FORMAT ('POINTS ',(i0),' ',(a),(a))
+102     FORMAT (*(es13.6))
+103     FORMAT ('CELLS ',(i0),' ',(i0),(a))
+104     FORMAT ('CELL_TYPES ',(i0),(a))
+105     FORMAT (' ',i0,(a))
+110     FORMAT ((a))
+
+        END PROCEDURE unstruct_grid_write_unformatted
 
         MODULE PROCEDURE unstruct_grid_setup
-        !!
         !! Sets up the unstructured grid dataset with information
         INTEGER(i4k) :: i, size_cnt
 
@@ -792,7 +1324,6 @@ write(0,*) 'after get_keywords'
         END PROCEDURE unstruct_grid_setup
 
         MODULE PROCEDURE unstruct_grid_setup_multiclass
-        !!
         !! Sets up the unstructured grid dataset with information
         INTEGER(i4k) :: i, size_cnt
 

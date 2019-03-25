@@ -39,10 +39,12 @@ MODULE vtk_cells
         INTEGER(i4k) :: type     = 0
         INTEGER(i4k), DIMENSION(:), ALLOCATABLE :: points
     CONTAINS
-        PROCEDURE, PRIVATE :: read_formatted, read_unformatted
+        PROCEDURE, PRIVATE :: read_formatted
+        PROCEDURE, PRIVATE :: read_unformatted
         GENERIC, PUBLIC    :: READ(FORMATTED)    => read_formatted
         GENERIC, PUBLIC    :: READ(UNFORMATTED)  => read_unformatted
-        PROCEDURE, PRIVATE :: write_formatted, write_unformatted
+        PROCEDURE, PRIVATE :: write_formatted
+        PROCEDURE, PRIVATE :: write_unformatted
         GENERIC, PUBLIC    :: WRITE(FORMATTED)   => write_formatted
         GENERIC, PUBLIC    :: WRITE(UNFORMATTED) => write_unformatted
         PROCEDURE, PUBLIC  :: setup => abs_setup

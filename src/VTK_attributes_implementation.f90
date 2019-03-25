@@ -22,35 +22,57 @@ SUBMODULE (vtk_attributes) vtk_attributes_implementation
 
     CONTAINS
 
-        MODULE PROCEDURE abs_read
+        MODULE PROCEDURE abs_read_formatted
         !! author: Ian Porter
-        !! date: 12/13/2017
+        !! date: 03/25/2019
         !!
-        !! Abstract for reading an attribute
+        !! Deferred procedure for formatted read
         !!
-        SELECT TYPE (me)
-        CLASS IS (attribute)
-            READ(unit,*) me%dataname !! Workaround for ifort 2018 linux compiler error (not error for 2018 on Windows)
-                                     !! that a class with intent(out) was not provided a value
-        END SELECT
-        END PROCEDURE abs_read
-module procedure read_unformatted
+        CHARACTER(LEN=def_len) :: line
 
-end procedure read_unformatted
+        ERROR STOP 'Should not be in abs_read_formatted. This procedure is only here b/c Intel requires it'
+        READ(unit,FMT=100,IOSTAT=iostat,IOMSG=iomsg) line
+100     FORMAT((a))
+        END PROCEDURE abs_read_formatted
 
-module procedure write_unformatted
-end procedure write_unformatted
-        MODULE PROCEDURE abs_write
+        MODULE PROCEDURE abs_read_unformatted
         !! author: Ian Porter
-        !! date: 12/13/2017
+        !! date: 03/25/2019
         !!
-        !! Abstract for writing an attribute
+        !! Deferred procedure for unformatted read
         !!
-        SELECT TYPE (me)
-        CLASS IS (attribute)
-            WRITE(unit,*) me%dataname
-        END SELECT
-        END PROCEDURE abs_write
+        CHARACTER(LEN=def_len) :: line
+
+        ERROR STOP 'Should not be in abs_read_unformatted. This procedure is only here b/c Intel requires it'
+        READ(unit,FMT=100,IOSTAT=iostat,IOMSG=iomsg) line
+100     FORMAT((a))
+        END PROCEDURE abs_read_unformatted
+
+        MODULE PROCEDURE abs_write_formatted
+        !! author: Ian Porter
+        !! date: 03/25/2019
+        !!
+        !! Deferred procedure for formatted write
+        !!
+        CHARACTER(LEN=def_len) :: line
+
+        ERROR STOP 'Should not be in abs_write_formatted. This procedure is only here b/c Intel requires it'
+        WRITE(unit,FMT=100,IOSTAT=iostat,IOMSG=iomsg) line
+100     FORMAT((a))
+        END PROCEDURE abs_write_formatted
+
+        MODULE PROCEDURE abs_write_unformatted
+        !! author: Ian Porter
+        !! date: 03/25/2019
+        !!
+        !! Deferred procedure for unformatted write
+        !!
+        CHARACTER(LEN=def_len) :: line
+
+        ERROR STOP 'Should not be in abs_write_unformatted. This procedure is only here b/c Intel requires it'
+        WRITE(unit,FMT=100,IOSTAT=iostat,IOMSG=iomsg) line
+100     FORMAT((a))
+        END PROCEDURE abs_write_unformatted
 
         MODULE PROCEDURE initialize
         !! author: Ian Porter
@@ -80,7 +102,7 @@ end procedure write_unformatted
             ELSE
                 my_tablename = default
             END IF
-            CALL me%setup(dataname, my_datatype, my_numcomp, tablename, ints1d, values1d)
+            CALL me%setup(dataname, my_datatype, my_numcomp, my_tablename, ints1d, values1d)
         CLASS IS (vector)
             CALL me%setup(dataname, datatype, values2d)
         CLASS IS (normal)
@@ -114,7 +136,7 @@ end procedure write_unformatted
 !********
 ! Scalars
 !********
-        MODULE PROCEDURE scalar_read
+        MODULE PROCEDURE scalar_read_formatted
         USE Misc, ONLY : interpret_string, to_lowercase
         !! author: Ian Porter
         !! date: 12/13/2017
@@ -135,7 +157,7 @@ end procedure write_unformatted
         me%numcomp = ints(1); me%dataname = TRIM(chars(1)); me%datatype = TRIM(chars(2))
         DEALLOCATE(ints)
 
-        READ(unit,FMT=100, IOSTAT=iostat, IOMSG=iomsg) line
+        READ(unit,FMT=100,IOSTAT=iostat,IOMSG=iomsg) line
 
         CALL interpret_string (line=line, datatype=[ 'C' ], ignore='LOOKUP_TABLE ', separator=' ', chars=chars)
         me%tablename = TRIM(chars(1))
@@ -152,7 +174,7 @@ end procedure write_unformatted
 
         i = 0
         get_scalars: DO
-            READ(unit,FMT=100, IOSTAT=iostat, IOMSG=iomsg) line
+            READ(unit,FMT=100,IOSTAT=iostat,IOMSG=iomsg) line
             end_of_file = (is_iostat_end(iostat))
             IF (end_of_file) THEN
                 EXIT get_scalars
@@ -184,7 +206,7 @@ end procedure write_unformatted
         END DO get_scalars
 
 100     FORMAT((a))
-        END PROCEDURE scalar_read
+        END PROCEDURE scalar_read_formatted
 
         MODULE PROCEDURE scalar_read_unformatted
         USE Misc, ONLY : interpret_string, to_lowercase
@@ -207,7 +229,7 @@ write(0,*) 'line= ',line
         me%numcomp = ints(1); me%dataname = TRIM(chars(1)); me%datatype = TRIM(chars(2))
         DEALLOCATE(ints)
 
-        READ(unit,FMT=100, IOSTAT=iostat, IOMSG=iomsg) line
+        READ(unit,FMT=100,IOSTAT=iostat,IOMSG=iomsg) line
 
         CALL interpret_string (line=line, datatype=[ 'C' ], ignore='LOOKUP_TABLE ', separator=' ', chars=chars)
         me%tablename = TRIM(chars(1))
@@ -226,7 +248,7 @@ write(0,*) 'line= ',line
         i = 0
 
         get_scalars: DO
-            READ(unit,FMT=100, IOSTAT=iostat, IOMSG=iomsg) line
+            READ(unit,FMT=100,IOSTAT=iostat,IOMSG=iomsg) line
             end_of_file = (is_iostat_end(iostat))
             IF (end_of_file) THEN
                 EXIT get_scalars
@@ -260,7 +282,7 @@ write(0,*) 'line= ',line
 100     FORMAT((a))
         END PROCEDURE scalar_read_unformatted
 
-        MODULE PROCEDURE scalar_write
+        MODULE PROCEDURE scalar_write_formatted
         !! author: Ian Porter
         !! date: 12/13/2017
         !!
@@ -268,15 +290,15 @@ write(0,*) 'line= ',line
         !!
         INTEGER(i4k) :: i
 
-        WRITE(unit,100) me%dataname, me%datatype, me%numcomp, new_line('(a)')
-        WRITE(unit,101) me%tablename, new_line('a')
+        WRITE(unit,100,IOSTAT=iostat,IOMSG=iomsg) me%dataname, me%datatype, me%numcomp, new_line('(a)')
+        WRITE(unit,101,IOSTAT=iostat,IOMSG=iomsg) me%tablename, new_line('a')
         IF (ALLOCATED(me%reals)) THEN
             DO i = 1, SIZE(me%reals)
-                WRITE(unit,102) me%reals(i), new_line('a')
+                WRITE(unit,102,IOSTAT=iostat,IOMSG=iomsg) me%reals(i), new_line('a')
             END DO
         ELSE IF (ALLOCATED(me%ints)) THEN
             DO i = 1, SIZE(me%ints)
-                WRITE(unit,103) me%ints(i), new_line('a')
+                WRITE(unit,103,IOSTAT=iostat,IOMSG=iomsg) me%ints(i), new_line('a')
             END DO
         ELSE
             ERROR STOP 'Neither real or integer arrays are allocated for scalar_write'
@@ -287,7 +309,7 @@ write(0,*) 'line= ',line
 102     FORMAT(es13.6,(a))
 103     FORMAT(i0,(a))
 
-        END PROCEDURE scalar_write
+        END PROCEDURE scalar_write_formatted
 
         MODULE PROCEDURE scalar_write_unformatted
         !! author: Ian Porter
@@ -298,17 +320,17 @@ write(0,*) 'line= ',line
         INTEGER(i4k) :: i
 
 !        WRITE(unit) 'SCALARS ' // me%dataname // ', ' // me%datatype // ', ' // me%numcomp
-        WRITE(unit) 'LOOKUP_TABLE ' // me%tablename // new_line('a')
+        WRITE(unit,IOSTAT=iostat,IOMSG=iomsg) 'LOOKUP_TABLE ' // me%tablename // new_line('a')
         IF (ALLOCATED(me%reals)) THEN
             DO i = 1, SIZE(me%reals)
 !                WRITE(unit,102) me%reals(i)
-WRITE(unit) me%reals(i)
-                WRITE(unit) new_line('a')
+WRITE(unit,IOSTAT=iostat,IOMSG=iomsg) me%reals(i)
+                WRITE(unit,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
             END DO
         ELSE IF (ALLOCATED(me%ints)) THEN
             DO i = 1, SIZE(me%ints)
-                WRITE(unit,103) me%ints(i)
-                WRITE(unit) new_line('a')
+                WRITE(unit,103,IOSTAT=iostat,IOMSG=iomsg) me%ints(i)
+                WRITE(unit,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
             END DO
         ELSE
             ERROR STOP 'Neither real or integer arrays are allocated for scalar_write'
@@ -398,7 +420,7 @@ WRITE(unit) me%reals(i)
 !********
 ! Vectors
 !********
-        MODULE PROCEDURE vector_read
+        MODULE PROCEDURE vector_read_formatted
         USE Misc, ONLY : interpret_string
         !! author: Ian Porter
         !! date: 12/14/2017
@@ -438,9 +460,51 @@ WRITE(unit) me%reals(i)
         END DO get_vectors
 
 100     FORMAT((a))
-        END PROCEDURE vector_read
+        END PROCEDURE vector_read_formatted
 
-        MODULE PROCEDURE vector_write
+        MODULE PROCEDURE vector_read_unformatted
+        USE Misc, ONLY : interpret_string
+        !! author: Ian Porter
+        !! date: 12/14/2017
+        !!
+        !! Subroutine performs the read for a vector attribute
+        !!
+        INTEGER(i4k)            :: i
+        INTEGER(i4k), PARAMETER :: dim = 3
+        LOGICAL                 :: end_of_file
+        CHARACTER(LEN=def_len)  :: line
+        REAL(r8k),        DIMENSION(:),   ALLOCATABLE :: reals
+        CHARACTER(LEN=:), DIMENSION(:),   ALLOCATABLE :: chars
+        REAL(r8k),        DIMENSION(:,:), ALLOCATABLE :: dummy
+
+        READ(unit,FMT=100,IOSTAT=iostat,IOMSG=iomsg) line
+        CALL interpret_string (line=line, datatype=[ 'C','C' ], ignore='VECTORS ', separator=' ', chars=chars)
+        me%dataname = TRIM(chars(1)); me%datatype = TRIM(chars(2))
+
+        ALLOCATE(me%vectors(0,0)); i = 0
+
+        get_vectors: DO
+            READ(unit,FMT=100,IOSTAT=iostat,IOMSG=iomsg) line
+            end_of_file = (is_iostat_end(iostat))
+            IF (end_of_file) THEN
+                EXIT get_vectors
+            ELSE IF (TRIM(line) == '') THEN
+                CYCLE     !! Skip blank lines
+            ELSE
+                ALLOCATE(dummy(1:UBOUND(me%vectors,DIM=1)+1,1:dim),source=0.0_r8k)
+                IF (i > 0) dummy(1:UBOUND(me%vectors,DIM=1),1:dim) = me%vectors
+                CALL MOVE_ALLOC(dummy, me%vectors)
+                i = i + 1
+
+                CALL interpret_string (line=line, datatype=[ 'R','R','R' ], separator=' ', reals=reals)
+                me%vectors(i,1:dim) = reals(1:dim)
+            END IF
+        END DO get_vectors
+
+100     FORMAT((a))
+        END PROCEDURE vector_read_unformatted
+
+        MODULE PROCEDURE vector_write_formatted
         !! author: Ian Porter
         !! date: 12/13/2017
         !!
@@ -448,16 +512,35 @@ WRITE(unit) me%reals(i)
         !!
         INTEGER(i4k) :: i
 
-        WRITE(unit,100) me%dataname, me%datatype, new_line('a')
+        WRITE(unit,100,IOSTAT=iostat,IOMSG=iomsg) me%dataname, me%datatype, new_line('a')
         DO i = 1, SIZE(me%vectors,DIM=1)
-            WRITE(unit,101) me%vectors(i,1:3)
-            WRITE(unit,102) new_line('a')
+            WRITE(unit,101,IOSTAT=iostat,IOMSG=iomsg) me%vectors(i,1:3)
+            WRITE(unit,102,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
         END DO
 
 100     FORMAT('VECTORS ',(a),' ',(a),(a))
 101     FORMAT(*(es13.6,' '))
 102     FORMAT((a))
-        END PROCEDURE vector_write
+        END PROCEDURE vector_write_formatted
+
+        MODULE PROCEDURE vector_write_unformatted
+        !! author: Ian Porter
+        !! date: 12/13/2017
+        !!
+        !! Subroutine performs the write for a vector attribute
+        !!
+        INTEGER(i4k) :: i
+
+        WRITE(unit,100,IOSTAT=iostat,IOMSG=iomsg) me%dataname, me%datatype, new_line('a')
+        DO i = 1, SIZE(me%vectors,DIM=1)
+            WRITE(unit,101,IOSTAT=iostat,IOMSG=iomsg) me%vectors(i,1:3)
+            WRITE(unit,102,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
+        END DO
+
+100     FORMAT('VECTORS ',(a),' ',(a),(a))
+101     FORMAT(*(es13.6,' '))
+102     FORMAT((a))
+        END PROCEDURE vector_write_unformatted
 
         MODULE PROCEDURE vector_setup
         !! author: Ian Porter
@@ -513,7 +596,7 @@ WRITE(unit) me%reals(i)
 !********
 ! Normals
 !********
-        MODULE PROCEDURE normal_read
+        MODULE PROCEDURE normal_read_formatted
         USE Misc, ONLY : interpret_string
         !! author: Ian Porter
         !! date: 12/14/2017
@@ -553,9 +636,51 @@ WRITE(unit) me%reals(i)
         END DO get_normals
 
 100     FORMAT((a))
-        END PROCEDURE normal_read
+        END PROCEDURE normal_read_formatted
 
-        MODULE PROCEDURE normal_write
+        MODULE PROCEDURE normal_read_unformatted
+        USE Misc, ONLY : interpret_string
+        !! author: Ian Porter
+        !! date: 12/14/2017
+        !!
+        !! Subroutine performs the read for a normal attribute
+        !!
+        INTEGER(i4k)            :: i
+        INTEGER(i4k), PARAMETER :: dim = 3
+        LOGICAL                 :: end_of_file
+        CHARACTER(LEN=def_len)  :: line
+        REAL(r8k),        DIMENSION(:),   ALLOCATABLE :: reals
+        CHARACTER(LEN=:), DIMENSION(:),   ALLOCATABLE :: chars
+        REAL(r8k),        DIMENSION(:,:), ALLOCATABLE :: dummy
+
+        READ(unit,FMT=100,IOSTAT=iostat,IOMSG=iomsg) line
+        CALL interpret_string (line=line, datatype=[ 'C','C' ], ignore='NORMALS ', separator=' ', chars=chars)
+        me%dataname = TRIM(chars(1)); me%datatype = TRIM(chars(2))
+
+        ALLOCATE(me%normals(0,0)); i = 0
+
+        get_normals: DO
+            READ(unit,FMT=100,IOSTAT=iostat,IOMSG=iomsg) line
+            end_of_file = (is_iostat_end(iostat))
+            IF (end_of_file) THEN
+                EXIT get_normals
+            ELSE IF (TRIM(line) == '') THEN
+                CYCLE     !! Skip blank lines
+            ELSE
+                ALLOCATE(dummy(1:UBOUND(me%normals,DIM=1)+1,1:dim),source=0.0_r8k)
+                IF (i > 0) dummy(1:UBOUND(me%normals,DIM=1),1:dim) = me%normals
+                CALL MOVE_ALLOC(dummy, me%normals)
+                i = i + 1
+
+                CALL interpret_string (line=line, datatype=[ 'R','R','R' ], separator=' ', reals=reals)
+                me%normals(i,1:dim) = reals(1:dim)
+            END IF
+        END DO get_normals
+
+100     FORMAT((a))
+        END PROCEDURE normal_read_unformatted
+
+        MODULE PROCEDURE normal_write_formatted
         !! author: Ian Porter
         !! date: 12/13/2017
         !!
@@ -563,16 +688,35 @@ WRITE(unit) me%reals(i)
         !!
         INTEGER(i4k) :: i
 
-        WRITE(unit,100) me%dataname, me%datatype, new_line('a')
+        WRITE(unit,100,IOSTAT=iostat,IOMSG=iomsg) me%dataname, me%datatype, new_line('a')
         DO i = 1, SIZE(me%normals,DIM=1)
-            WRITE(unit,101) me%normals(i,1:3)
-            WRITE(unit,102) new_line('a')
+            WRITE(unit,101,IOSTAT=iostat,IOMSG=iomsg) me%normals(i,1:3)
+            WRITE(unit,102,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
         END DO
 
 100     FORMAT('NORMALS ',(a),' ',(a),(a))
 101     FORMAT(*(es13.6,' '))
 102     FORMAT((a))
-        END PROCEDURE normal_write
+        END PROCEDURE normal_write_formatted
+
+        MODULE PROCEDURE normal_write_unformatted
+        !! author: Ian Porter
+        !! date: 12/13/2017
+        !!
+        !! Subroutine performs the write for a normal attribute
+        !!
+        INTEGER(i4k) :: i
+
+        WRITE(unit,100,IOSTAT=iostat,IOMSG=iomsg) me%dataname, me%datatype, new_line('a')
+        DO i = 1, SIZE(me%normals,DIM=1)
+            WRITE(unit,101,IOSTAT=iostat,IOMSG=iomsg) me%normals(i,1:3)
+            WRITE(unit,102,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
+        END DO
+
+100     FORMAT('NORMALS ',(a),' ',(a),(a))
+101     FORMAT(*(es13.6,' '))
+102     FORMAT((a))
+        END PROCEDURE normal_write_unformatted
 
         MODULE PROCEDURE normal_setup
         !! author: Ian Porter
@@ -625,10 +769,10 @@ WRITE(unit) me%reals(i)
         END IF
 
         END PROCEDURE check_for_diffs_normal
-!********
+!*********
 ! Textures
-!********
-        MODULE PROCEDURE texture_read
+!*********
+        MODULE PROCEDURE texture_read_formatted
         USE Misc, ONLY : interpret_string
         !! author: Ian Porter
         !! date: 12/14/2017
@@ -670,9 +814,53 @@ WRITE(unit) me%reals(i)
         END DO get_textures
 
 100     FORMAT((a))
-        END PROCEDURE texture_read
+        END PROCEDURE texture_read_formatted
 
-        MODULE PROCEDURE texture_write
+        MODULE PROCEDURE texture_read_unformatted
+        USE Misc, ONLY : interpret_string
+        !! author: Ian Porter
+        !! date: 12/14/2017
+        !!
+        !! Subroutine performs the read for a texture attribute
+        !!
+        INTEGER(i4k)           :: i, dim
+        LOGICAL                :: end_of_file
+        CHARACTER(LEN=def_len) :: line
+        INTEGER(i4k),     DIMENSION(:),   ALLOCATABLE :: ints
+        REAL(r8k),        DIMENSION(:),   ALLOCATABLE :: reals
+        CHARACTER(LEN=:), DIMENSION(:),   ALLOCATABLE :: chars
+        REAL(r8k),        DIMENSION(:,:), ALLOCATABLE :: dummy
+        CHARACTER(LEN=1), DIMENSION(3),   PARAMETER   :: datatype = [ 'R','R','R' ]
+
+        READ(unit,FMT=100,IOSTAT=iostat,IOMSG=iomsg) line
+        CALL interpret_string (line=line, datatype=[ 'C','I','C' ], ignore='TEXTURE_COORDINATES ', separator=' ', &
+          &                    ints=ints, chars=chars)
+        me%dataname = TRIM(chars(1)); me%datatype = TRIM(chars(2)); dim = ints(1)
+
+        ALLOCATE(me%textures(0,0)); i = 0
+
+        get_textures: DO
+            READ(unit,FMT=100,IOSTAT=iostat,IOMSG=iomsg) line
+            end_of_file = (is_iostat_end(iostat))
+            IF (end_of_file) THEN
+                EXIT get_textures
+            ELSE IF (TRIM(line) == '') THEN
+                CYCLE     !! Skip blank lines
+            ELSE
+                ALLOCATE(dummy(1:UBOUND(me%textures,DIM=1)+1,1:dim),source=0.0_r8k)
+                IF (i > 0) dummy(1:UBOUND(me%textures,DIM=1),1:dim) = me%textures
+                CALL MOVE_ALLOC(dummy, me%textures)
+                i = i + 1
+
+                CALL interpret_string (line=line, datatype=datatype(1:dim), separator=' ', reals=reals)
+                me%textures(i,1:dim) = reals(1:dim)
+            END IF
+        END DO get_textures
+
+100     FORMAT((a))
+        END PROCEDURE texture_read_unformatted
+
+        MODULE PROCEDURE texture_write_formatted
         !! author: Ian Porter
         !! date: 12/13/2017
         !!
@@ -680,16 +868,35 @@ WRITE(unit) me%reals(i)
         !!
         INTEGER(i4k) :: i
 
-        WRITE(unit,100) me%dataname, SIZE(me%textures,DIM=2), me%datatype, new_line('a')
+        WRITE(unit,100,IOSTAT=iostat,IOMSG=iomsg) me%dataname, SIZE(me%textures,DIM=2), me%datatype, new_line('a')
         DO i = 1, SIZE(me%textures,DIM=1)
-            WRITE(unit,101) me%textures(i,:)
-            WRITE(unit,102) new_line('a')
+            WRITE(unit,101,IOSTAT=iostat,IOMSG=iomsg) me%textures(i,:)
+            WRITE(unit,102,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
         END DO
 
 100     FORMAT('TEXTURE_COORDINATES ',(a),' ',(i1),' ',(a),(a))
 101     FORMAT(*(es13.6,' '))
 102     FORMAT((a))
-        END PROCEDURE texture_write
+        END PROCEDURE texture_write_formatted
+
+        MODULE PROCEDURE texture_write_unformatted
+        !! author: Ian Porter
+        !! date: 12/13/2017
+        !!
+        !! Subroutine performs the write for a texture attribute
+        !!
+        INTEGER(i4k) :: i
+
+        WRITE(unit,100,IOSTAT=iostat,IOMSG=iomsg) me%dataname, SIZE(me%textures,DIM=2), me%datatype, new_line('a')
+        DO i = 1, SIZE(me%textures,DIM=1)
+            WRITE(unit,101,IOSTAT=iostat,IOMSG=iomsg) me%textures(i,:)
+            WRITE(unit,102,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
+        END DO
+
+100     FORMAT('TEXTURE_COORDINATES ',(a),' ',(i1),' ',(a),(a))
+101     FORMAT(*(es13.6,' '))
+102     FORMAT((a))
+        END PROCEDURE texture_write_unformatted
 
         MODULE PROCEDURE texture_setup
         !! author: Ian Porter
@@ -745,7 +952,7 @@ WRITE(unit) me%reals(i)
 !********
 ! Tensors
 !********
-        MODULE PROCEDURE tensor_read
+        MODULE PROCEDURE tensor_read_formatted
         USE Misc, ONLY : interpret_string
         !! author: Ian Porter
         !! date: 12/14/2017
@@ -789,25 +996,71 @@ WRITE(unit) me%reals(i)
         END DO get_tensors
 
 100     FORMAT((a))
-        END PROCEDURE tensor_read
+        END PROCEDURE tensor_read_formatted
 
-        MODULE PROCEDURE tensor_write
+        MODULE PROCEDURE tensor_read_unformatted
+        USE Misc, ONLY : interpret_string
+        !! author: Ian Porter
+        !! date: 12/14/2017
+        !!
+        !! Subroutine performs the read for a tensor attribute
+        !!
+        INTEGER(i4k)           :: i, j
+        LOGICAL                :: end_of_file
+        CHARACTER(LEN=def_len) :: line
+        REAL(r8k),          DIMENSION(:), ALLOCATABLE :: reals
+        CHARACTER(LEN=:),   DIMENSION(:), ALLOCATABLE :: chars
+        TYPE(tensor_array), DIMENSION(:), ALLOCATABLE :: dummy
+
+        READ(unit,FMT=100,IOSTAT=iostat,IOMSG=iomsg) line
+        CALL interpret_string (line=line, datatype=[ 'C','C' ], ignore='TENSORS ', separator=' ', &
+          &                    chars=chars)
+        me%dataname = TRIM(chars(1)); me%datatype = TRIM(chars(2))
+
+        ALLOCATE(me%tensors(0)); i = 0
+
+        get_tensors: DO
+            READ(unit,FMT=100,IOSTAT=iostat,IOMSG=iomsg) line
+            end_of_file = (is_iostat_end(iostat))
+            IF (end_of_file) THEN
+                EXIT get_tensors
+            ELSE IF (TRIM(line) == '') THEN
+                CYCLE      !! Skip blank lines
+            ELSE
+                ALLOCATE(dummy(1:UBOUND(me%tensors,DIM=1)+1))
+                dummy(1:UBOUND(me%tensors,DIM=1)) = me%tensors
+                CALL MOVE_ALLOC(dummy, me%tensors)
+                i = i + 1
+
+                DO j = 1, UBOUND(me%tensors(i)%val,DIM=1)
+                    IF (j > 1) READ(unit,FMT=100,IOSTAT=iostat,IOMSG=iomsg) line
+                    CALL interpret_string (line=line, datatype=[ 'R','R','R' ], separator=' ', reals=reals)
+                    me%tensors(i)%val(j,1:3) = reals(1:3)
+                END DO
+
+            END IF
+        END DO get_tensors
+
+100     FORMAT((a))
+        END PROCEDURE tensor_read_unformatted
+
+        MODULE PROCEDURE tensor_write_formatted
         !! author: Ian Porter
         !! date: 12/13/2017
         !!
         !! Subroutine performs the write for a tensor attribute
         !!
         INTEGER(i4k) :: i, j
-        CHARACTER(LEN=:), ALLOCATABLE :: string_to_write
+!        CHARACTER(LEN=:), ALLOCATABLE :: string_to_write
 
-        WRITE(unit,100) me%dataname, me%datatype, new_line('a')
+        WRITE(unit,100,IOSTAT=iostat,IOMSG=iomsg) me%dataname, me%datatype, new_line('a')
         DO i = 1, SIZE(me%tensors,DIM=1)
             DO j = 1, SIZE(me%tensors(i)%val,DIM=1)
 !                ALLOCATE(string_to_write(1:14*SIZE(me%tensors(i)%val,DIM=2)))
 !                WRITE(string_to_write,101) me%tensors(i)%val(j,:)
-WRITE(unit,101) me%tensors(i)%val(j,:)
+WRITE(unit,101,IOSTAT=iostat,IOMSG=iomsg) me%tensors(i)%val(j,:)
 !                WRITE(unit,101) string_to_write, new_line('a')
-                WRITE(unit,102) new_line('a')
+                WRITE(unit,102,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
 !                DEALLOCATE(string_to_write)
             END DO
             WRITE(unit,102) new_line('a')
@@ -816,7 +1069,34 @@ WRITE(unit,101) me%tensors(i)%val(j,:)
 100     FORMAT('TENSORS ',(a),' ',(a),(a))
 101     FORMAT(*(es13.6,' '),(a))
 102     FORMAT((a))
-        END PROCEDURE tensor_write
+        END PROCEDURE tensor_write_formatted
+
+        MODULE PROCEDURE tensor_write_unformatted
+        !! author: Ian Porter
+        !! date: 12/13/2017
+        !!
+        !! Subroutine performs the write for a tensor attribute
+        !!
+        INTEGER(i4k) :: i, j
+!        CHARACTER(LEN=:), ALLOCATABLE :: string_to_write
+
+        WRITE(unit,100,IOSTAT=iostat,IOMSG=iomsg) me%dataname, me%datatype, new_line('a')
+        DO i = 1, SIZE(me%tensors,DIM=1)
+            DO j = 1, SIZE(me%tensors(i)%val,DIM=1)
+!                ALLOCATE(string_to_write(1:14*SIZE(me%tensors(i)%val,DIM=2)))
+!                WRITE(string_to_write,101) me%tensors(i)%val(j,:)
+WRITE(unit,101,IOSTAT=iostat,IOMSG=iomsg) me%tensors(i)%val(j,:)
+!                WRITE(unit,101) string_to_write, new_line('a')
+                WRITE(unit,102,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
+!                DEALLOCATE(string_to_write)
+            END DO
+            WRITE(unit,102) new_line('a')
+        END DO
+
+100     FORMAT('TENSORS ',(a),' ',(a),(a))
+101     FORMAT(*(es13.6,' '),(a))
+102     FORMAT((a))
+        END PROCEDURE tensor_write_unformatted
 
         MODULE PROCEDURE tensor_setup
         !! author: Ian Porter
@@ -887,7 +1167,7 @@ WRITE(unit,101) me%tensors(i)%val(j,:)
 !********
 ! Fields
 !********
-        MODULE PROCEDURE field_read
+        MODULE PROCEDURE field_read_formatted
         USE Misc, ONLY : interpret_string
         !! author: Ian Porter
         !! date: 12/14/2017
@@ -941,9 +1221,65 @@ WRITE(unit,101) me%tensors(i)%val(j,:)
         END DO get_fields
 
 100     FORMAT((a))
-        END PROCEDURE field_read
+        END PROCEDURE field_read_formatted
 
-        MODULE PROCEDURE field_write
+        MODULE PROCEDURE field_read_unformatted
+        USE Misc, ONLY : interpret_string
+        !! author: Ian Porter
+        !! date: 12/14/2017
+        !!
+        !! Subroutine performs the read for a field attribute
+        !!
+        INTEGER(i4k)                :: i, j, dim
+        LOGICAL                     :: end_of_file
+        CHARACTER(LEN=def_len)      :: line
+        CHARACTER(LEN=*), PARAMETER :: real_char = 'R'
+        REAL(r8k),        DIMENSION(:), ALLOCATABLE :: reals
+        INTEGER(i4k),     DIMENSION(:), ALLOCATABLE :: ints
+        CHARACTER(LEN=:), DIMENSION(:), ALLOCATABLE :: chars
+        CHARACTER(LEN=1), DIMENSION(:), ALLOCATABLE :: datatype
+!        TYPE(field_data_array), DIMENSION(:), ALLOCATABLE :: dummy
+
+        READ(unit,FMT=100,IOSTAT=iostat,IOMSG=iomsg) line
+        CALL interpret_string (line=line, datatype=[ 'C','I' ], ignore='FIELD ', separator=' ', &
+          &                    ints=ints, chars=chars)
+        me%dataname = TRIM(chars(1)); dim = ints(1)
+
+        ALLOCATE(me%array(1:dim)); i = 0
+
+        get_fields: DO
+            READ(unit,FMT=100,IOSTAT=iostat,IOMSG=iomsg) line
+            end_of_file = (is_iostat_end(iostat))
+            IF (end_of_file) THEN
+                EXIT get_fields
+            ELSE IF (TRIM(line) == '') THEN
+                CYCLE      !! Skip blank lines
+            ELSE
+!                ALLOCATE(dummy(1:UBOUND(me%array,DIM=1)))
+!                dummy(1:UBOUND(me%array,DIM=1)) = me%array
+!                CALL MOVE_ALLOC(dummy, me%array)
+                i = i + 1
+
+                CALL interpret_string (line=line, datatype=[ 'C','I','I','C' ], separator=' ', chars=chars, ints=ints)
+                me%array(i)%name = TRIM(chars(1)); me%array(i)%numComponents = ints(1)
+                me%array(i)%numTuples = ints(2); me%array(i)%datatype = chars(2)
+                ALLOCATE(datatype(1:me%array(i)%numComponents),source=real_char)
+                ALLOCATE(me%array(i)%data(1:me%array(i)%numTuples,1:me%array(i)%numComponents),source=0.0_r8k)
+
+                DO j = 1, me%array(i)%numTuples
+                    READ(unit,FMT=100,IOSTAT=iostat,IOMSG=iomsg) line
+                    CALL interpret_string (line=line, datatype=datatype, separator=' ', reals=reals)
+                    me%array(i)%data(j,:) = reals(:)
+                END DO
+                DEALLOCATE(datatype)
+
+            END IF
+        END DO get_fields
+
+100     FORMAT((a))
+        END PROCEDURE field_read_unformatted
+
+        MODULE PROCEDURE field_write_formatted
         !! author: Ian Porter
         !! date: 12/13/2017
         !!
@@ -951,21 +1287,47 @@ WRITE(unit,101) me%tensors(i)%val(j,:)
         !!
         INTEGER(i4k) :: i, j
 
-        WRITE(unit,100) me%dataname, SIZE(me%array,DIM=1), new_line('a')
+        WRITE(unit,100,IOSTAT=iostat,IOMSG=iomsg) me%dataname, SIZE(me%array,DIM=1), new_line('a')
         DO i = 1, SIZE(me%array,DIM=1)
-            WRITE(unit,101) me%array(i)%name, me%array(i)%numComponents, me%array(i)%numTuples, me%array(i)%datatype, new_line('a')
+            WRITE(unit,101,IOSTAT=iostat,IOMSG=iomsg) me%array(i)%name, me%array(i)%numComponents, &
+              &                                        me%array(i)%numTuples, me%array(i)%datatype, new_line('a')
             DO j = 1, me%array(i)%numTuples
-                WRITE(unit,102) me%array(i)%data(j,:)
-                WRITE(unit,103) new_line('a')
+                WRITE(unit,102,IOSTAT=iostat,IOMSG=iomsg) me%array(i)%data(j,:)
+                WRITE(unit,103,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
             END DO
-            WRITE(unit,103) new_line('a')
+            WRITE(unit,103,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
         END DO
 
 100     FORMAT('FIELD ',(a),' ',(i0),(a))
 101     FORMAT((a),' ',(i0),' ',(i0),' ',(a),(a))
 102     FORMAT(*(es13.6,' '))
 103     FORMAT((a))
-        END PROCEDURE field_write
+        END PROCEDURE field_write_formatted
+
+        MODULE PROCEDURE field_write_unformatted
+        !! author: Ian Porter
+        !! date: 12/13/2017
+        !!
+        !! Subroutine performs the write for a field attribute
+        !!
+        INTEGER(i4k) :: i, j
+
+        WRITE(unit,100,IOSTAT=iostat,IOMSG=iomsg) me%dataname, SIZE(me%array,DIM=1), new_line('a')
+        DO i = 1, SIZE(me%array,DIM=1)
+            WRITE(unit,101,IOSTAT=iostat,IOMSG=iomsg) me%array(i)%name, me%array(i)%numComponents, &
+              &                                        me%array(i)%numTuples, me%array(i)%datatype, new_line('a')
+            DO j = 1, me%array(i)%numTuples
+                WRITE(unit,102,IOSTAT=iostat,IOMSG=iomsg) me%array(i)%data(j,:)
+                WRITE(unit,103,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
+            END DO
+            WRITE(unit,103,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
+        END DO
+
+100     FORMAT('FIELD ',(a),' ',(i0),(a))
+101     FORMAT((a),' ',(i0),' ',(i0),' ',(a),(a))
+102     FORMAT(*(es13.6,' '))
+103     FORMAT((a))
+        END PROCEDURE field_write_unformatted
 
         MODULE PROCEDURE field_setup
         !! author: Ian Porter

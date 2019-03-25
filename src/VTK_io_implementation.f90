@@ -29,7 +29,7 @@ SUBMODULE (vtk_io) vtk_io_implementation
         END IF
         IF (PRESENT(multiple_io)) THEN
             IF (multiple_io) THEN
-                WRITE (fcnt_char,FMT='(i8)') fcnt
+                WRITE(fcnt_char,FMT='(i8)') fcnt
                 vtkfilename = vtkfilename(1:INDEX(to_uppercase(vtkfilename),to_uppercase(file_extension))-1) // "_" // &
                   &           TRIM(ADJUSTL(fcnt_char)) // file_extension
                 fcnt = fcnt + 1
@@ -46,11 +46,11 @@ SUBMODULE (vtk_io) vtk_io_implementation
             SELECT CASE (filetype)
             CASE (ascii)
                 filetype_text = 'ASCII'
-                OPEN(unit=unit, file=vtkfilename, iostat=inputstat, status='unknown', form='formatted')
+                OPEN(unit=unit, file=vtkfilename,IOSTAT=inputstat, status='unknown', form='formatted')
                                                                !! Open the VTK file
             CASE (binary)
                 filetype_text = 'BINARY'
-                OPEN(unit=unit, file=vtkfilename, iostat=inputstat, status='unknown', form='binary', &
+                OPEN(unit=unit, file=vtkfilename,IOSTAT=inputstat, status='unknown', form='binary', &
                   &  access='stream')
                                                                !! Open the VTK file
             CASE DEFAULT
@@ -77,7 +77,7 @@ SUBMODULE (vtk_io) vtk_io_implementation
         IF (PRESENT(pointdatasets)) THEN
             WRITE(unit,102) pointdatasets(1)%n
             DO I = 1, SIZE(pointdatasets)
-                WRITE(unit,*) pointdatasets(i)%attribute
+                WRITE(unit,'(DT)') pointdatasets(i)%attribute
             END DO
         ELSE IF (PRESENT(pointdata)) THEN
             WRITE(unit,102) pointdatasets(1)%n
@@ -108,7 +108,7 @@ SUBMODULE (vtk_io) vtk_io_implementation
 
         INQUIRE(unit = unit, opened = file_is_open)        !! Check to see if file is already open
         IF (.NOT. file_is_open) THEN                       !! File is not yet open. Determine format to open file
-            OPEN(unit=unit, file=filename, iostat=inputstat, status='old')
+            OPEN(unit=unit, file=filename,IOSTAT=inputstat, status='old')
                                                            !! Open the VTK file
         END IF
 
@@ -132,7 +132,7 @@ SUBMODULE (vtk_io) vtk_io_implementation
             form      = 'unformatted'
         END SELECT
 
-        OPEN(unit=unit, file=filename, iostat=inputstat, status='old', form=form)
+        OPEN(unit=unit, file=filename,IOSTAT=inputstat, status='old', form=form)
                                                            !! Open the VTK file in the proper format
         READ(unit,100) line                                !! Skip over this line
         READ(unit,100) line                                !! Skip over this line

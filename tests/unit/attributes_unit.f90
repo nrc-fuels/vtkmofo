@@ -100,7 +100,8 @@ MODULE vtk_attributes_unit_tests
             SELECT CASE (i)
             CASE (1, 7)
                 !! Scalar attribute
-                ALLOCATE(scalar  :: vtk_type_1, vtk_type_2)
+                ALLOCATE(scalar :: vtk_type_1)
+                ALLOCATE(scalar :: vtk_type_2)
 
                 !! Data type is generated from the defined values above
                 IF (i == 1) THEN
@@ -156,12 +157,12 @@ MODULE vtk_attributes_unit_tests
                 CASE ('FORMATTED')
                     !! Write the data populated from above
                     OPEN (unit=vtk_unit, file=TRIM(filename(i)), form=TRIM(form(j)), access=TRIM(access(j)))
-                    WRITE(vtk_unit,FMT='(DT)') vtk_type_1
+                    WRITE(vtk_unit,*) vtk_type_1
                     CLOSE(unit=vtk_unit)
 
                     !! Data type is generated from the read
                     OPEN (unit=vtk_unit, file=TRIM(filename(i)), form=TRIM(form(j)), access=TRIM(access(j)))
-                    READ(vtk_unit,FMT='(DT)') vtk_type_2
+                    READ(vtk_unit,*) vtk_type_2
                     CLOSE(unit=vtk_unit)
                 CASE ('UNFORMATTED')
                     !! Write the data populated from above

@@ -30,10 +30,14 @@ MODULE vtk_datasets
         INTEGER(i4k), DIMENSION(3)    :: dimensions = [ 0, 0, 0 ]
         LOGICAL, PUBLIC               :: firstcall = .TRUE.
     CONTAINS
-        PROCEDURE(abs_read),  DEFERRED :: read_formatted
-        GENERIC, PUBLIC :: READ(FORMATTED) => read_formatted
-        PROCEDURE(abs_write), DEFERRED :: write_formatted
-        GENERIC, PUBLIC :: WRITE(FORMATTED) => write_formatted
+        PROCEDURE(abs_read_formatted),   DEFERRED, PRIVATE :: read_formatted
+        PROCEDURE(abs_read_unformatted), DEFERRED, PRIVATE :: read_unformatted
+        GENERIC, PUBLIC :: READ(FORMATTED)   => read_formatted
+        GENERIC, PUBLIC :: READ(UNFORMATTED) => read_unformatted
+        PROCEDURE(abs_write_formatted),   DEFERRED, PRIVATE :: write_formatted
+        PROCEDURE(abs_write_unformatted), DEFERRED, PRIVATE :: write_unformatted
+        GENERIC, PUBLIC :: WRITE(FORMATTED)   => write_formatted
+        GENERIC, PUBLIC :: WRITE(UNFORMATTED) => write_unformatted
         PROCEDURE, NON_OVERRIDABLE, PUBLIC :: init
         PROCEDURE, PRIVATE :: check_for_diffs
         GENERIC, PUBLIC :: OPERATOR(.diff.) => check_for_diffs
@@ -45,8 +49,10 @@ MODULE vtk_datasets
         REAL(r8k), DIMENSION(3) :: origin  = [ 0.0_r8k, 0.0_r8k, 0.0_r8k ]
         REAL(r8k), DIMENSION(3) :: spacing = [ 0.0_r8k, 0.0_r8k, 0.0_r8k ]
     CONTAINS
-        PROCEDURE :: read_formatted  => struct_pts_read
-        PROCEDURE :: write_formatted => struct_pts_write
+        PROCEDURE :: read_formatted    => struct_pts_read_formatted
+        PROCEDURE :: read_unformatted  => struct_pts_read_unformatted
+        PROCEDURE :: write_formatted   => struct_pts_write_formatted
+        PROCEDURE :: write_unformatted => struct_pts_write_unformatted
         PROCEDURE, PRIVATE :: setup => struct_pts_setup
         PROCEDURE :: check_for_diffs => check_for_diffs_struct_pts
     END TYPE struct_pts
@@ -57,8 +63,10 @@ MODULE vtk_datasets
         INTEGER(i4k)                           :: n_points = 0
         REAL(r8k), DIMENSION(:,:), ALLOCATABLE :: points
     CONTAINS
-        PROCEDURE :: read_formatted  => struct_grid_read
-        PROCEDURE :: write_formatted => struct_grid_write
+        PROCEDURE :: read_formatted    => struct_grid_read_formatted
+        PROCEDURE :: read_unformatted  => struct_grid_read_unformatted
+        PROCEDURE :: write_formatted   => struct_grid_write_formatted
+        PROCEDURE :: write_unformatted => struct_grid_write_unformatted
         PROCEDURE, PRIVATE :: setup => struct_grid_setup
         PROCEDURE :: check_for_diffs => check_for_diffs_struct_grid
     END TYPE struct_grid
@@ -70,8 +78,10 @@ MODULE vtk_datasets
         TYPE (coordinates) :: y
         TYPE (coordinates) :: z
     CONTAINS
-        PROCEDURE :: read_formatted  => rectlnr_grid_read
-        PROCEDURE :: write_formatted => rectlnr_grid_write
+        PROCEDURE :: read_formatted    => rectlnr_grid_read_formatted
+        PROCEDURE :: read_unformatted  => rectlnr_grid_read_unformatted
+        PROCEDURE :: write_formatted   => rectlnr_grid_write_formatted
+        PROCEDURE :: write_unformatted => rectlnr_grid_write_unformatted
         PROCEDURE, PRIVATE :: setup => rectlnr_grid_setup
         PROCEDURE :: check_for_diffs => check_for_diffs_rectlnr_grid
     END TYPE rectlnr_grid
@@ -86,8 +96,10 @@ MODULE vtk_datasets
         CLASS(vtkcell), DIMENSION(:),   ALLOCATABLE :: polygons
         CLASS(vtkcell), DIMENSION(:),   ALLOCATABLE :: triangles
     CONTAINS
-        PROCEDURE :: read_formatted  => polygonal_data_read
-        PROCEDURE :: write_formatted => polygonal_data_write
+        PROCEDURE :: read_formatted    => polygonal_data_read_formatted
+        PROCEDURE :: read_unformatted  => polygonal_data_read_unformatted
+        PROCEDURE :: write_formatted   => polygonal_data_write_formatted
+        PROCEDURE :: write_unformatted => polygonal_data_write_unformatted
         PROCEDURE, PRIVATE :: setup => polygonal_data_setup
     END TYPE polygonal_data
 
@@ -101,8 +113,10 @@ MODULE vtk_datasets
         REAL(r8k),          DIMENSION(:,:), ALLOCATABLE :: points
         TYPE(vtkcell_list), DIMENSION(:),   ALLOCATABLE :: cell_list
     CONTAINS
-        PROCEDURE :: read_formatted  => unstruct_grid_read
-        PROCEDURE :: write_formatted => unstruct_grid_write
+        PROCEDURE :: read_formatted    => unstruct_grid_read_formatted
+        PROCEDURE :: read_unformatted  => unstruct_grid_read_unformatted
+        PROCEDURE :: write_formatted   => unstruct_grid_write_formatted
+        PROCEDURE :: write_unformatted => unstruct_grid_write_unformatted
         PROCEDURE :: unstruct_grid_setup
         PROCEDURE :: unstruct_grid_setup_multiclass
         GENERIC, PRIVATE :: setup => unstruct_grid_setup, unstruct_grid_setup_multiclass
@@ -112,11 +126,11 @@ MODULE vtk_datasets
 ! ****************
 ! Abstract dataset
 ! ****************
-        MODULE SUBROUTINE abs_read (me, unit, iotype, v_list, iostat, iomsg)
+        MODULE SUBROUTINE abs_read_formatted (me, unit, iotype, v_list, iostat, iomsg)
         !! author: Ian Porter
         !! date: 3/4/2019
         !!
-        !! Abstract read
+        !! Abstract read for formatted file
         !!
         CLASS(dataset),   INTENT(INOUT) :: me
         INTEGER(i4k),     INTENT(IN)    :: unit
@@ -125,13 +139,26 @@ MODULE vtk_datasets
         INTEGER(i4k),     INTENT(OUT)   :: iostat
         CHARACTER(LEN=*), INTENT(INOUT) :: iomsg
 
-        END SUBROUTINE abs_read
+        END SUBROUTINE abs_read_formatted
 
-        MODULE SUBROUTINE abs_write (me, unit, iotype, v_list, iostat, iomsg)
+        MODULE SUBROUTINE abs_read_unformatted (me, unit, iostat, iomsg)
+        !! author: Ian Porter
+        !! date: 3/25/2019
+        !!
+        !! Abstract read for unformatted file
+        !!
+        CLASS(dataset),   INTENT(INOUT) :: me
+        INTEGER(i4k),     INTENT(IN)    :: unit
+        INTEGER(i4k),     INTENT(OUT)   :: iostat
+        CHARACTER(LEN=*), INTENT(INOUT) :: iomsg
+
+        END SUBROUTINE abs_read_unformatted
+
+        MODULE SUBROUTINE abs_write_formatted (me, unit, iotype, v_list, iostat, iomsg)
         !! author: Ian Porter
         !! date: 3/4/2019
         !!
-        !! Abstract write
+        !! Abstract write for formatted file
         !!
         CLASS(dataset),   INTENT(IN)    :: me
         INTEGER(i4k),     INTENT(IN)    :: unit
@@ -140,7 +167,20 @@ MODULE vtk_datasets
         INTEGER(i4k),     INTENT(OUT)   :: iostat
         CHARACTER(LEN=*), INTENT(INOUT) :: iomsg
 
-        END SUBROUTINE abs_write
+        END SUBROUTINE abs_write_formatted
+
+        MODULE SUBROUTINE abs_write_unformatted (me, unit, iostat, iomsg)
+        !! author: Ian Porter
+        !! date: 3/25/2019
+        !!
+        !! Abstract write for unformatted file
+        !!
+        CLASS(dataset),   INTENT(IN)    :: me
+        INTEGER(i4k),     INTENT(IN)    :: unit
+        INTEGER(i4k),     INTENT(OUT)   :: iostat
+        CHARACTER(LEN=*), INTENT(INOUT) :: iomsg
+
+        END SUBROUTINE abs_write_unformatted
 
         MODULE SUBROUTINE init (me, datatype, dims, origin, spacing, points, cells, cell_list, &
           &                     x_coords, y_coords, z_coords, vertices, lines, polygons, triangles)
@@ -174,9 +214,12 @@ MODULE vtk_datasets
 ! *****************
 ! Structured Points
 ! *****************
-        MODULE SUBROUTINE struct_pts_read (me, unit, iotype, v_list, iostat, iomsg)
+        MODULE SUBROUTINE struct_pts_read_formatted (me, unit, iotype, v_list, iostat, iomsg)
+        !! author: Ian Porter
+        !! date: 3/4/2019
         !!
-        !! Reads the structured points dataset information from the .vtk file
+        !! Abstract read for formatted file
+        !!
         CLASS(struct_pts), INTENT(INOUT) :: me
         INTEGER(i4k),      INTENT(IN)    :: unit
         CHARACTER(LEN=*),  INTENT(IN)    :: iotype
@@ -184,11 +227,27 @@ MODULE vtk_datasets
         INTEGER(i4k),      INTENT(OUT)   :: iostat
         CHARACTER(LEN=*),  INTENT(INOUT) :: iomsg
 
-        END SUBROUTINE struct_pts_read
+        END SUBROUTINE struct_pts_read_formatted
 
-        MODULE SUBROUTINE struct_pts_write (me, unit, iotype, v_list, iostat, iomsg)
+        MODULE SUBROUTINE struct_pts_read_unformatted (me, unit, iostat, iomsg)
+        !! author: Ian Porter
+        !! date: 3/25/2019
         !!
-        !! Writes the structured points dataset information to the .vtk file
+        !! Abstract read for unformatted file
+        !!
+        CLASS(struct_pts), INTENT(INOUT) :: me
+        INTEGER(i4k),      INTENT(IN)    :: unit
+        INTEGER(i4k),      INTENT(OUT)   :: iostat
+        CHARACTER(LEN=*),  INTENT(INOUT) :: iomsg
+
+        END SUBROUTINE struct_pts_read_unformatted
+
+        MODULE SUBROUTINE struct_pts_write_formatted (me, unit, iotype, v_list, iostat, iomsg)
+        !! author: Ian Porter
+        !! date: 3/4/2019
+        !!
+        !! Abstract write for formatted file
+        !!
         CLASS(struct_pts), INTENT(IN)    :: me
         INTEGER(i4k),      INTENT(IN)    :: unit
         CHARACTER(LEN=*),  INTENT(IN)    :: iotype
@@ -196,7 +255,20 @@ MODULE vtk_datasets
         INTEGER(i4k),      INTENT(OUT)   :: iostat
         CHARACTER(LEN=*),  INTENT(INOUT) :: iomsg
 
-        END SUBROUTINE struct_pts_write
+        END SUBROUTINE struct_pts_write_formatted
+
+        MODULE SUBROUTINE struct_pts_write_unformatted (me, unit, iostat, iomsg)
+        !! author: Ian Porter
+        !! date: 3/25/2019
+        !!
+        !! Abstract write for unformatted file
+        !!
+        CLASS(struct_pts), INTENT(IN)    :: me
+        INTEGER(i4k),      INTENT(IN)    :: unit
+        INTEGER(i4k),      INTENT(OUT)   :: iostat
+        CHARACTER(LEN=*),  INTENT(INOUT) :: iomsg
+
+        END SUBROUTINE struct_pts_write_unformatted
 
         MODULE SUBROUTINE struct_pts_setup (me, dims, origin, spacing)
         !!
@@ -218,9 +290,12 @@ MODULE vtk_datasets
 ! ***************
 ! Structured Grid
 ! ***************
-        MODULE SUBROUTINE struct_grid_read (me, unit, iotype, v_list, iostat, iomsg)
+        MODULE SUBROUTINE struct_grid_read_formatted (me, unit, iotype, v_list, iostat, iomsg)
+        !! author: Ian Porter
+        !! date: 3/4/2019
         !!
-        !! Reads the structured grid dataset information from the .vtk file
+        !! Abstract read for formatted file
+        !!
         CLASS(struct_grid), INTENT(INOUT) :: me
         INTEGER(i4k),       INTENT(IN)    :: unit
         CHARACTER(LEN=*),   INTENT(IN)    :: iotype
@@ -228,11 +303,27 @@ MODULE vtk_datasets
         INTEGER(i4k),       INTENT(OUT)   :: iostat
         CHARACTER(LEN=*),   INTENT(INOUT) :: iomsg
 
-        END SUBROUTINE struct_grid_read
+        END SUBROUTINE struct_grid_read_formatted
 
-        MODULE SUBROUTINE struct_grid_write (me, unit, iotype, v_list, iostat, iomsg)
+        MODULE SUBROUTINE struct_grid_read_unformatted (me, unit, iostat, iomsg)
+        !! author: Ian Porter
+        !! date: 3/25/2019
         !!
-        !! Writes the structured grid dataset information to the .vtk file
+        !! Abstract read for unformatted file
+        !!
+        CLASS(struct_grid), INTENT(INOUT) :: me
+        INTEGER(i4k),       INTENT(IN)    :: unit
+        INTEGER(i4k),       INTENT(OUT)   :: iostat
+        CHARACTER(LEN=*),   INTENT(INOUT) :: iomsg
+
+        END SUBROUTINE struct_grid_read_unformatted
+
+        MODULE SUBROUTINE struct_grid_write_formatted (me, unit, iotype, v_list, iostat, iomsg)
+        !! author: Ian Porter
+        !! date: 3/4/2019
+        !!
+        !! Abstract write for formatted file
+        !!
         CLASS(struct_grid), INTENT(IN)    :: me
         INTEGER(i4k),       INTENT(IN)    :: unit
         CHARACTER(LEN=*),   INTENT(IN)    :: iotype
@@ -240,7 +331,20 @@ MODULE vtk_datasets
         INTEGER(i4k),       INTENT(OUT)   :: iostat
         CHARACTER(LEN=*),   INTENT(INOUT) :: iomsg
 
-        END SUBROUTINE struct_grid_write
+        END SUBROUTINE struct_grid_write_formatted
+
+        MODULE SUBROUTINE struct_grid_write_unformatted (me, unit, iostat, iomsg)
+        !! author: Ian Porter
+        !! date: 3/25/2019
+        !!
+        !! Abstract write for unformatted file
+        !!
+        CLASS(struct_grid), INTENT(IN)    :: me
+        INTEGER(i4k),       INTENT(IN)    :: unit
+        INTEGER(i4k),       INTENT(OUT)   :: iostat
+        CHARACTER(LEN=*),   INTENT(INOUT) :: iomsg
+
+        END SUBROUTINE struct_grid_write_unformatted
 
         MODULE SUBROUTINE struct_grid_setup (me, dims, points)
         !!
@@ -262,9 +366,12 @@ MODULE vtk_datasets
 ! ****************
 ! Rectilinear Grid
 ! ****************
-        MODULE SUBROUTINE rectlnr_grid_read (me, unit, iotype, v_list, iostat, iomsg)
+        MODULE SUBROUTINE rectlnr_grid_read_formatted (me, unit, iotype, v_list, iostat, iomsg)
+        !! author: Ian Porter
+        !! date: 3/4/2019
         !!
-        !! Reads the rectilinear grid dataset information from the .vtk file
+        !! Abstract read for formatted file
+        !!
         CLASS(rectlnr_grid), INTENT(INOUT) :: me
         INTEGER(i4k),        INTENT(IN)    :: unit
         CHARACTER(LEN=*),    INTENT(IN)    :: iotype
@@ -272,11 +379,27 @@ MODULE vtk_datasets
         INTEGER(i4k),        INTENT(OUT)   :: iostat
         CHARACTER(LEN=*),    INTENT(INOUT) :: iomsg
 
-        END SUBROUTINE rectlnr_grid_read
+        END SUBROUTINE rectlnr_grid_read_formatted
 
-        MODULE SUBROUTINE rectlnr_grid_write (me, unit, iotype, v_list, iostat, iomsg)
+        MODULE SUBROUTINE rectlnr_grid_read_unformatted (me, unit, iostat, iomsg)
+        !! author: Ian Porter
+        !! date: 3/25/2019
         !!
-        !! Writes the rectilinear grid dataset information to the .vtk file
+        !! Abstract read for unformatted file
+        !!
+        CLASS(rectlnr_grid), INTENT(INOUT) :: me
+        INTEGER(i4k),        INTENT(IN)    :: unit
+        INTEGER(i4k),        INTENT(OUT)   :: iostat
+        CHARACTER(LEN=*),    INTENT(INOUT) :: iomsg
+
+        END SUBROUTINE rectlnr_grid_read_unformatted
+
+        MODULE SUBROUTINE rectlnr_grid_write_formatted (me, unit, iotype, v_list, iostat, iomsg)
+        !! author: Ian Porter
+        !! date: 3/4/2019
+        !!
+        !! Abstract write for formatted file
+        !!
         CLASS(rectlnr_grid), INTENT(IN)    :: me
         INTEGER(i4k),        INTENT(IN)    :: unit
         CHARACTER(LEN=*),    INTENT(IN)    :: iotype
@@ -284,7 +407,20 @@ MODULE vtk_datasets
         INTEGER(i4k),        INTENT(OUT)   :: iostat
         CHARACTER(LEN=*),    INTENT(INOUT) :: iomsg
 
-        END SUBROUTINE rectlnr_grid_write
+        END SUBROUTINE rectlnr_grid_write_formatted
+
+        MODULE SUBROUTINE rectlnr_grid_write_unformatted (me, unit, iostat, iomsg)
+        !! author: Ian Porter
+        !! date: 3/25/2019
+        !!
+        !! Abstract write for unformatted file
+        !!
+        CLASS(rectlnr_grid), INTENT(IN)    :: me
+        INTEGER(i4k),        INTENT(IN)    :: unit
+        INTEGER(i4k),        INTENT(OUT)   :: iostat
+        CHARACTER(LEN=*),    INTENT(INOUT) :: iomsg
+
+        END SUBROUTINE rectlnr_grid_write_unformatted
 
         MODULE SUBROUTINE rectlnr_grid_setup (me, dims, x_coords, y_coords, z_coords, datatype)
         !!
@@ -309,9 +445,12 @@ MODULE vtk_datasets
 ! **************
 ! Polygonal Data
 ! **************
-        MODULE SUBROUTINE polygonal_data_read (me, unit, iotype, v_list, iostat, iomsg)
+        MODULE SUBROUTINE polygonal_data_read_formatted (me, unit, iotype, v_list, iostat, iomsg)
+        !! author: Ian Porter
+        !! date: 3/4/2019
         !!
-        !! Reads the polygonal data dataset information from the .vtk file
+        !! Abstract read for formatted file
+        !!
         CLASS(polygonal_data), INTENT(INOUT) :: me
         INTEGER(i4k),          INTENT(IN)    :: unit
         CHARACTER(LEN=*),      INTENT(IN)    :: iotype
@@ -319,11 +458,27 @@ MODULE vtk_datasets
         INTEGER(i4k),          INTENT(OUT)   :: iostat
         CHARACTER(LEN=*),      INTENT(INOUT) :: iomsg
 
-        END SUBROUTINE polygonal_data_read
+        END SUBROUTINE polygonal_data_read_formatted
 
-        MODULE SUBROUTINE polygonal_data_write (me, unit, iotype, v_list, iostat, iomsg)
+        MODULE SUBROUTINE polygonal_data_read_unformatted (me, unit, iostat, iomsg)
+        !! author: Ian Porter
+        !! date: 3/25/2019
         !!
-        !! Writes the polygonal data dataset information to the .vtk file
+        !! Abstract read for unformatted file
+        !!
+        CLASS(polygonal_data), INTENT(INOUT) :: me
+        INTEGER(i4k),          INTENT(IN)    :: unit
+        INTEGER(i4k),          INTENT(OUT)   :: iostat
+        CHARACTER(LEN=*),      INTENT(INOUT) :: iomsg
+
+        END SUBROUTINE polygonal_data_read_unformatted
+
+        MODULE SUBROUTINE polygonal_data_write_formatted (me, unit, iotype, v_list, iostat, iomsg)
+        !! author: Ian Porter
+        !! date: 3/4/2019
+        !!
+        !! Abstract write for formatted file
+        !!
         CLASS(polygonal_data), INTENT(IN)    :: me
         INTEGER(i4k),          INTENT(IN)    :: unit
         CHARACTER(LEN=*),      INTENT(IN)    :: iotype
@@ -331,7 +486,20 @@ MODULE vtk_datasets
         INTEGER(i4k),          INTENT(OUT)   :: iostat
         CHARACTER(LEN=*),      INTENT(INOUT) :: iomsg
 
-        END SUBROUTINE polygonal_data_write
+        END SUBROUTINE polygonal_data_write_formatted
+
+        MODULE SUBROUTINE polygonal_data_write_unformatted (me, unit, iostat, iomsg)
+        !! author: Ian Porter
+        !! date: 3/25/2019
+        !!
+        !! Abstract write for unformatted file
+        !!
+        CLASS(polygonal_data), INTENT(IN)    :: me
+        INTEGER(i4k),          INTENT(IN)    :: unit
+        INTEGER(i4k),          INTENT(OUT)   :: iostat
+        CHARACTER(LEN=*),      INTENT(INOUT) :: iomsg
+
+        END SUBROUTINE polygonal_data_write_unformatted
 
         MODULE SUBROUTINE polygonal_data_setup (me, points, vertices, lines, polygons, triangles)
         !!
@@ -347,9 +515,12 @@ MODULE vtk_datasets
 ! *****************
 ! Unstructured Grid
 ! *****************
-        MODULE SUBROUTINE unstruct_grid_read (me, unit, iotype, v_list, iostat, iomsg)
+        MODULE SUBROUTINE unstruct_grid_read_formatted (me, unit, iotype, v_list, iostat, iomsg)
+        !! author: Ian Porter
+        !! date: 3/4/2019
         !!
-        !! Reads the unstructured grid dataset information from the .vtk file
+        !! Abstract read for formatted file
+        !!
         CLASS(unstruct_grid), INTENT(INOUT) :: me
         INTEGER(i4k),         INTENT(IN)    :: unit
         CHARACTER(LEN=*),     INTENT(IN)    :: iotype
@@ -357,11 +528,27 @@ MODULE vtk_datasets
         INTEGER(i4k),         INTENT(OUT)   :: iostat
         CHARACTER(LEN=*),     INTENT(INOUT) :: iomsg
 
-        END SUBROUTINE unstruct_grid_read
+        END SUBROUTINE unstruct_grid_read_formatted
 
-        MODULE SUBROUTINE unstruct_grid_write (me, unit, iotype, v_list, iostat, iomsg)
+        MODULE SUBROUTINE unstruct_grid_read_unformatted (me, unit, iostat, iomsg)
+        !! author: Ian Porter
+        !! date: 3/25/2019
         !!
-        !! Writes the unstructured grid dataset information from the .vtk file
+        !! Abstract read for unformatted file
+        !!
+        CLASS(unstruct_grid), INTENT(INOUT) :: me
+        INTEGER(i4k),         INTENT(IN)    :: unit
+        INTEGER(i4k),         INTENT(OUT)   :: iostat
+        CHARACTER(LEN=*),     INTENT(INOUT) :: iomsg
+
+        END SUBROUTINE unstruct_grid_read_unformatted
+
+        MODULE SUBROUTINE unstruct_grid_write_formatted (me, unit, iotype, v_list, iostat, iomsg)
+        !! author: Ian Porter
+        !! date: 3/4/2019
+        !!
+        !! Abstract write for formatted file
+        !!
         CLASS(unstruct_grid), INTENT(IN)    :: me
         INTEGER(i4k),         INTENT(IN)    :: unit
         CHARACTER(LEN=*),     INTENT(IN)    :: iotype
@@ -369,7 +556,20 @@ MODULE vtk_datasets
         INTEGER(i4k),         INTENT(OUT)   :: iostat
         CHARACTER(LEN=*),     INTENT(INOUT) :: iomsg
 
-        END SUBROUTINE unstruct_grid_write
+        END SUBROUTINE unstruct_grid_write_formatted
+
+        MODULE SUBROUTINE unstruct_grid_write_unformatted (me, unit, iostat, iomsg)
+        !! author: Ian Porter
+        !! date: 3/25/2019
+        !!
+        !! Abstract write for unformatted file
+        !!
+        CLASS(unstruct_grid), INTENT(IN)    :: me
+        INTEGER(i4k),         INTENT(IN)    :: unit
+        INTEGER(i4k),         INTENT(OUT)   :: iostat
+        CHARACTER(LEN=*),     INTENT(INOUT) :: iomsg
+
+        END SUBROUTINE unstruct_grid_write_unformatted
 
         MODULE SUBROUTINE unstruct_grid_setup (me, points, cells)
         !! Sets up the unstructured grid dataset with information for a single class of cells

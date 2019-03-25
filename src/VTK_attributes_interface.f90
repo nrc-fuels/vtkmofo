@@ -25,16 +25,14 @@ MODULE vtk_attributes
         CHARACTER(LEN=:), ALLOCATABLE :: dataname
         CHARACTER(LEN=:), ALLOCATABLE :: datatype
     CONTAINS
-        PROCEDURE(abs_read),        DEFERRED :: read
-!        PROCEDURE(abs_read_unformatted), DEFERRED :: read_unformatted
-procedure :: read_unformatted
-        GENERIC   :: READ(FORMATTED) => read
-        GENERIC   :: READ(UNFORMATTED) => read_unformatted
-        PROCEDURE(abs_write), DEFERRED :: write
-!        PROCEDURE(abs_write_unformatted), DEFERRED :: write_unformatted
-procedure :: write_unformatted
-        GENERIC   :: WRITE(FORMATTED) => write
-        GENERIC   :: WRITE(UNFORMATTED) => write_unformatted
+        PROCEDURE(abs_read_formatted),   DEFERRED, PRIVATE :: read_formatted
+        PROCEDURE(abs_read_unformatted), DEFERRED, PRIVATE :: read_unformatted
+        GENERIC, PUBLIC :: READ(FORMATTED)   => read_formatted
+        GENERIC, PUBLIC :: READ(UNFORMATTED) => read_unformatted
+        PROCEDURE(abs_write_formatted),   DEFERRED, PRIVATE :: write_formatted
+        PROCEDURE(abs_write_unformatted), DEFERRED, PRIVATE :: write_unformatted
+        GENERIC, PUBLIC :: WRITE(FORMATTED)   => write_formatted
+        GENERIC, PUBLIC :: WRITE(UNFORMATTED) => write_unformatted
         PROCEDURE, NON_OVERRIDABLE, PUBLIC :: init => initialize  !! Initialize the attribute
         PROCEDURE, PRIVATE :: check_for_diffs
         GENERIC :: OPERATOR(.diff.) => check_for_diffs
@@ -47,9 +45,9 @@ procedure :: write_unformatted
         INTEGER(i4k), DIMENSION(:), ALLOCATABLE :: ints
         REAL(r8k),    DIMENSION(:), ALLOCATABLE :: reals
     CONTAINS
-        PROCEDURE :: read  => scalar_read
+        PROCEDURE :: read_formatted  => scalar_read_formatted
         PROCEDURE :: read_unformatted  => scalar_read_unformatted
-        PROCEDURE :: write => scalar_write
+        PROCEDURE :: write_formatted => scalar_write_formatted
         PROCEDURE :: write_unformatted => scalar_write_unformatted
         PROCEDURE :: setup => scalar_setup
         PROCEDURE, PRIVATE :: check_for_diffs => check_for_diffs_scalar
@@ -59,8 +57,10 @@ procedure :: write_unformatted
         !! Vector attribute DT
         REAL(r8k), DIMENSION(:,:), ALLOCATABLE :: vectors
     CONTAINS
-        PROCEDURE :: read  => vector_read
-        PROCEDURE :: write => vector_write
+        PROCEDURE :: read_formatted  => vector_read_formatted
+        PROCEDURE :: read_unformatted => vector_read_unformatted
+        PROCEDURE :: write_formatted => vector_write_formatted
+        PROCEDURE :: write_unformatted => vector_write_unformatted
         PROCEDURE :: setup => vector_setup
         PROCEDURE, PRIVATE :: check_for_diffs => check_for_diffs_vector
     END TYPE vector
@@ -69,8 +69,10 @@ procedure :: write_unformatted
         !! Normal attribute DT
         REAL(r8k), DIMENSION(:,:), ALLOCATABLE :: normals
     CONTAINS
-        PROCEDURE :: read  => normal_read
-        PROCEDURE :: write => normal_write
+        PROCEDURE :: read_formatted  => normal_read_formatted
+        PROCEDURE :: read_unformatted => normal_read_unformatted
+        PROCEDURE :: write_formatted => normal_write_formatted
+        PROCEDURE :: write_unformatted => normal_write_unformatted
         PROCEDURE :: setup => normal_setup
         PROCEDURE, PRIVATE :: check_for_diffs => check_for_diffs_normal
     END TYPE normal
@@ -79,8 +81,10 @@ procedure :: write_unformatted
         !! Texture attribute DT
         REAL(r8k), DIMENSION(:,:), ALLOCATABLE :: textures
     CONTAINS
-        PROCEDURE :: read  => texture_read
-        PROCEDURE :: write => texture_write
+        PROCEDURE :: read_formatted  => texture_read_formatted
+        PROCEDURE :: read_unformatted => texture_read_unformatted
+        PROCEDURE :: write_formatted => texture_write_formatted
+        PROCEDURE :: write_unformatted => texture_write_unformatted
         PROCEDURE :: setup => texture_setup
         PROCEDURE, PRIVATE :: check_for_diffs => check_for_diffs_texture
     END TYPE texture
@@ -94,8 +98,10 @@ procedure :: write_unformatted
         !! Tensor attribute DT
         TYPE(tensor_array), DIMENSION(:), ALLOCATABLE :: tensors
     CONTAINS
-        PROCEDURE :: read  => tensor_read
-        PROCEDURE :: write => tensor_write
+        PROCEDURE :: read_formatted  => tensor_read_formatted
+        PROCEDURE :: read_unformatted => tensor_read_unformatted
+        PROCEDURE :: write_formatted => tensor_write_formatted
+        PROCEDURE :: write_unformatted => tensor_write_unformatted
         PROCEDURE :: setup => tensor_setup
         PROCEDURE, PRIVATE :: check_for_diffs => check_for_diffs_tensor
     END TYPE tensor
@@ -113,8 +119,10 @@ procedure :: write_unformatted
         !! Field attribute DT
         TYPE(field_data_array), DIMENSION(:), ALLOCATABLE :: array
     CONTAINS
-        PROCEDURE :: read  => field_read
-        PROCEDURE :: write => field_write
+        PROCEDURE :: read_formatted  => field_read_formatted
+        PROCEDURE :: read_unformatted => field_read_unformatted
+        PROCEDURE :: write_formatted => field_write_formatted
+        PROCEDURE :: write_unformatted => field_write_unformatted
         PROCEDURE :: setup => field_setup
         PROCEDURE, PRIVATE :: check_for_diffs => check_for_diffs_field
     END TYPE field
@@ -126,7 +134,7 @@ procedure :: write_unformatted
 
     INTERFACE
 
-        MODULE SUBROUTINE abs_read (me, unit, iotype, v_list, iostat, iomsg)
+        MODULE SUBROUTINE abs_read_formatted (me, unit, iotype, v_list, iostat, iomsg)
         !! author: Ian Porter
         !! date: 2/4/2019
         !!
@@ -139,9 +147,9 @@ procedure :: write_unformatted
         INTEGER(i4k),     INTENT(OUT)   :: iostat
         CHARACTER(LEN=*), INTENT(INOUT) :: iomsg
 
-        END SUBROUTINE abs_read
+        END SUBROUTINE abs_read_formatted
 
-        MODULE SUBROUTINE read_unformatted (me, unit, iostat, iomsg)
+        MODULE SUBROUTINE abs_read_unformatted (me, unit, iostat, iomsg)
         !! author: Ian Porter
         !! date: 2/11/2019
         !!
@@ -152,9 +160,9 @@ procedure :: write_unformatted
         INTEGER(i4k),     INTENT(OUT)   :: iostat
         CHARACTER(LEN=*), INTENT(INOUT) :: iomsg
 
-        END SUBROUTINE read_unformatted
+        END SUBROUTINE abs_read_unformatted
 
-        MODULE SUBROUTINE abs_write (me, unit, iotype, v_list, iostat, iomsg)
+        MODULE SUBROUTINE abs_write_formatted (me, unit, iotype, v_list, iostat, iomsg)
         !! author: Ian Porter
         !! date: 2/4/2019
         !!
@@ -167,9 +175,9 @@ procedure :: write_unformatted
         INTEGER(i4k),     INTENT(OUT)   :: iostat
         CHARACTER(LEN=*), INTENT(INOUT) :: iomsg
 
-        END SUBROUTINE abs_write
+        END SUBROUTINE abs_write_formatted
 
-        MODULE SUBROUTINE write_unformatted (me, unit, iostat, iomsg)
+        MODULE SUBROUTINE abs_write_unformatted (me, unit, iostat, iomsg)
         !! author: Ian Porter
         !! date: 2/11/2019
         !!
@@ -180,7 +188,7 @@ procedure :: write_unformatted
         INTEGER(i4k),     INTENT(OUT)   :: iostat
         CHARACTER(LEN=*), INTENT(INOUT) :: iomsg
 
-        END SUBROUTINE write_unformatted
+        END SUBROUTINE abs_write_unformatted
 
         MODULE SUBROUTINE initialize (me, dataname, datatype, numcomp, tablename, ints1d, ints2d, ints3d, &
           &                           values1d, values2d, values3d, field_arrays)
@@ -216,7 +224,7 @@ procedure :: write_unformatted
 !********
 ! Scalars
 !********
-        MODULE SUBROUTINE scalar_read (me, unit, iotype, v_list, iostat, iomsg)
+        MODULE SUBROUTINE scalar_read_formatted (me, unit, iotype, v_list, iostat, iomsg)
         !! author: Ian Porter
         !! date: 2/4/2019
         !!
@@ -229,7 +237,7 @@ procedure :: write_unformatted
         INTEGER(i4k),     INTENT(OUT)   :: iostat
         CHARACTER(LEN=*), INTENT(INOUT) :: iomsg
 
-        END SUBROUTINE scalar_read
+        END SUBROUTINE scalar_read_formatted
 
         MODULE SUBROUTINE scalar_read_unformatted (me, unit, iostat, iomsg)
         !! author: Ian Porter
@@ -244,7 +252,7 @@ procedure :: write_unformatted
 
         END SUBROUTINE scalar_read_unformatted
 
-        MODULE SUBROUTINE scalar_write(me, unit, iotype, v_list, iostat, iomsg)
+        MODULE SUBROUTINE scalar_write_formatted (me, unit, iotype, v_list, iostat, iomsg)
         !! author: Ian Porter
         !! date: 2/4/2019
         !!
@@ -257,7 +265,7 @@ procedure :: write_unformatted
         INTEGER(i4k),     INTENT(OUT)   :: iostat
         CHARACTER(LEN=*), INTENT(INOUT) :: iomsg
 
-        END SUBROUTINE scalar_write
+        END SUBROUTINE scalar_write_formatted
 
         MODULE SUBROUTINE scalar_write_unformatted (me, unit, iostat, iomsg)
         !! author: Ian Porter
@@ -302,11 +310,11 @@ procedure :: write_unformatted
 !********
 ! Vectors
 !********
-        MODULE SUBROUTINE vector_read (me, unit, iotype, v_list, iostat, iomsg)
+        MODULE SUBROUTINE vector_read_formatted (me, unit, iotype, v_list, iostat, iomsg)
         !! author: Ian Porter
         !! date: 12/14/2017
         !!
-        !! Subroutine performs the read for a vector attribute
+        !! Subroutine performs the formatted read for a vector attribute
         !!
         CLASS(vector),    INTENT(INOUT) :: me
         INTEGER(i4k),     INTENT(IN)    :: unit
@@ -315,13 +323,26 @@ procedure :: write_unformatted
         INTEGER(i4k),     INTENT(OUT)   :: iostat
         CHARACTER(LEN=*), INTENT(INOUT) :: iomsg
 
-        END SUBROUTINE vector_read
+        END SUBROUTINE vector_read_formatted
 
-        MODULE SUBROUTINE vector_write(me, unit, iotype, v_list, iostat, iomsg)
+        MODULE SUBROUTINE vector_read_unformatted (me, unit, iostat, iomsg)
+        !! author: Ian Porter
+        !! date: 3/25/2019
+        !!
+        !! Subroutine performs the unformatted read for a vector attribute
+        !!
+        CLASS(vector),    INTENT(INOUT) :: me
+        INTEGER(i4k),     INTENT(IN)    :: unit
+        INTEGER(i4k),     INTENT(OUT)   :: iostat
+        CHARACTER(LEN=*), INTENT(INOUT) :: iomsg
+
+        END SUBROUTINE vector_read_unformatted
+
+        MODULE SUBROUTINE vector_write_formatted (me, unit, iotype, v_list, iostat, iomsg)
         !! author: Ian Porter
         !! date: 12/13/2017
         !!
-        !! Subroutine performs the write for a vector attribute
+        !! Subroutine performs the formatted write for a vector attribute
         !!
         CLASS(vector),    INTENT(IN)    :: me
         INTEGER(i4k),     INTENT(IN)    :: unit
@@ -330,7 +351,20 @@ procedure :: write_unformatted
         INTEGER(i4k),     INTENT(OUT)   :: iostat
         CHARACTER(LEN=*), INTENT(INOUT) :: iomsg
 
-        END SUBROUTINE vector_write
+        END SUBROUTINE vector_write_formatted
+
+        MODULE SUBROUTINE vector_write_unformatted (me, unit, iostat, iomsg)
+        !! author: Ian Porter
+        !! date: 3/25/2019
+        !!
+        !! Subroutine performs the unformatted write for a vector attribute
+        !!
+        CLASS(vector),    INTENT(IN)    :: me
+        INTEGER(i4k),     INTENT(IN)    :: unit
+        INTEGER(i4k),     INTENT(OUT)   :: iostat
+        CHARACTER(LEN=*), INTENT(INOUT) :: iomsg
+
+        END SUBROUTINE vector_write_unformatted
 
         MODULE SUBROUTINE vector_setup (me, dataname, datatype, values2d)
         !! author: Ian Porter
@@ -359,11 +393,11 @@ procedure :: write_unformatted
 !********
 ! Normals
 !********
-        MODULE SUBROUTINE normal_read (me, unit, iotype, v_list, iostat, iomsg)
+        MODULE SUBROUTINE normal_read_formatted (me, unit, iotype, v_list, iostat, iomsg)
         !! author: Ian Porter
         !! date: 12/14/2017
         !!
-        !! Subroutine performs the read for a normal attribute
+        !! Subroutine performs the formatted read for a normal attribute
         !!
         CLASS(normal),    INTENT(INOUT) :: me
         INTEGER(i4k),     INTENT(IN)    :: unit
@@ -372,13 +406,26 @@ procedure :: write_unformatted
         INTEGER(i4k),     INTENT(OUT)   :: iostat
         CHARACTER(LEN=*), INTENT(INOUT) :: iomsg
 
-        END SUBROUTINE normal_read
+        END SUBROUTINE normal_read_formatted
 
-        MODULE SUBROUTINE normal_write (me, unit, iotype, v_list, iostat, iomsg)
+        MODULE SUBROUTINE normal_read_unformatted (me, unit, iostat, iomsg)
+        !! author: Ian Porter
+        !! date: 3/25/2019
+        !!
+        !! Subroutine performs the unformatted read for a normal attribute
+        !!
+        CLASS(normal),    INTENT(INOUT) :: me
+        INTEGER(i4k),     INTENT(IN)    :: unit
+        INTEGER(i4k),     INTENT(OUT)   :: iostat
+        CHARACTER(LEN=*), INTENT(INOUT) :: iomsg
+
+        END SUBROUTINE normal_read_unformatted
+
+        MODULE SUBROUTINE normal_write_formatted (me, unit, iotype, v_list, iostat, iomsg)
         !! author: Ian Porter
         !! date: 12/13/2017
         !!
-        !! Subroutine performs the write for a normal attribute
+        !! Subroutine performs the formatted write for a normal attribute
         !!
         CLASS(normal),    INTENT(IN)    :: me
         INTEGER(i4k),     INTENT(IN)    :: unit
@@ -387,7 +434,20 @@ procedure :: write_unformatted
         INTEGER(i4k),     INTENT(OUT)   :: iostat
         CHARACTER(LEN=*), INTENT(INOUT) :: iomsg
 
-        END SUBROUTINE normal_write
+        END SUBROUTINE normal_write_formatted
+
+        MODULE SUBROUTINE normal_write_unformatted (me, unit, iostat, iomsg)
+        !! author: Ian Porter
+        !! date: 3/25/2019
+        !!
+        !! Subroutine performs the unformatted write for a normal attribute
+        !!
+        CLASS(normal),    INTENT(IN)    :: me
+        INTEGER(i4k),     INTENT(IN)    :: unit
+        INTEGER(i4k),     INTENT(OUT)   :: iostat
+        CHARACTER(LEN=*), INTENT(INOUT) :: iomsg
+
+        END SUBROUTINE normal_write_unformatted
 
         MODULE SUBROUTINE normal_setup (me, dataname, datatype, values2d)
         !! author: Ian Porter
@@ -413,14 +473,14 @@ procedure :: write_unformatted
         LOGICAL                      :: diffs
 
         END FUNCTION check_for_diffs_normal
-!********
+!*********
 ! Textures
-!********
-        MODULE SUBROUTINE texture_read (me, unit, iotype, v_list, iostat, iomsg)
+!*********
+        MODULE SUBROUTINE texture_read_formatted (me, unit, iotype, v_list, iostat, iomsg)
         !! author: Ian Porter
         !! date: 12/14/2017
         !!
-        !! Subroutine performs the read for a texture attribute
+        !! Subroutine performs the formatted read for a texture attribute
         !!
         CLASS(texture),   INTENT(INOUT) :: me
         INTEGER(i4k),     INTENT(IN)    :: unit
@@ -429,13 +489,26 @@ procedure :: write_unformatted
         INTEGER(i4k),     INTENT(OUT)   :: iostat
         CHARACTER(LEN=*), INTENT(INOUT) :: iomsg
 
-        END SUBROUTINE texture_read
+        END SUBROUTINE texture_read_formatted
 
-        MODULE SUBROUTINE texture_write (me, unit, iotype, v_list, iostat, iomsg)
+        MODULE SUBROUTINE texture_read_unformatted (me, unit, iostat, iomsg)
+        !! author: Ian Porter
+        !! date: 3/25/2019
+        !!
+        !! Subroutine performs the unformatted read for a texture attribute
+        !!
+        CLASS(texture),   INTENT(INOUT) :: me
+        INTEGER(i4k),     INTENT(IN)    :: unit
+        INTEGER(i4k),     INTENT(OUT)   :: iostat
+        CHARACTER(LEN=*), INTENT(INOUT) :: iomsg
+
+        END SUBROUTINE texture_read_unformatted
+
+        MODULE SUBROUTINE texture_write_formatted (me, unit, iotype, v_list, iostat, iomsg)
         !! author: Ian Porter
         !! date: 12/13/2017
         !!
-        !! Subroutine performs the write for a texture attribute
+        !! Subroutine performs the formatted write for a texture attribute
         !!
         CLASS(texture),   INTENT(IN)    :: me
         INTEGER(i4k),     INTENT(IN)    :: unit
@@ -444,7 +517,20 @@ procedure :: write_unformatted
         INTEGER(i4k),     INTENT(OUT)   :: iostat
         CHARACTER(LEN=*), INTENT(INOUT) :: iomsg
 
-        END SUBROUTINE texture_write
+        END SUBROUTINE texture_write_formatted
+
+        MODULE SUBROUTINE texture_write_unformatted (me, unit, iostat, iomsg)
+        !! author: Ian Porter
+        !! date: 3/25/2019
+        !!
+        !! Subroutine performs the unformatted write for a texture attribute
+        !!
+        CLASS(texture),   INTENT(IN)    :: me
+        INTEGER(i4k),     INTENT(IN)    :: unit
+        INTEGER(i4k),     INTENT(OUT)   :: iostat
+        CHARACTER(LEN=*), INTENT(INOUT) :: iomsg
+
+        END SUBROUTINE texture_write_unformatted
 
         MODULE SUBROUTINE texture_setup (me, dataname, datatype, values2d)
         !! author: Ian Porter
@@ -473,11 +559,11 @@ procedure :: write_unformatted
 !********
 ! Tensors
 !********
-        MODULE SUBROUTINE tensor_read (me, unit, iotype, v_list, iostat, iomsg)
+        MODULE SUBROUTINE tensor_read_formatted (me, unit, iotype, v_list, iostat, iomsg)
         !! author: Ian Porter
         !! date: 12/14/2017
         !!
-        !! Subroutine performs the read for a tensor attribute
+        !! Subroutine performs the formatted read for a tensor attribute
         !!
         CLASS(tensor),    INTENT(INOUT) :: me
         INTEGER(i4k),     INTENT(IN)    :: unit
@@ -486,13 +572,26 @@ procedure :: write_unformatted
         INTEGER(i4k),     INTENT(OUT)   :: iostat
         CHARACTER(LEN=*), INTENT(INOUT) :: iomsg
 
-        END SUBROUTINE tensor_read
+        END SUBROUTINE tensor_read_formatted
 
-        MODULE SUBROUTINE tensor_write (me, unit, iotype, v_list, iostat, iomsg)
+        MODULE SUBROUTINE tensor_read_unformatted (me, unit, iostat, iomsg)
+        !! author: Ian Porter
+        !! date: 3/25/2019
+        !!
+        !! Subroutine performs the unformatted read for a tensor attribute
+        !!
+        CLASS(tensor),    INTENT(INOUT) :: me
+        INTEGER(i4k),     INTENT(IN)    :: unit
+        INTEGER(i4k),     INTENT(OUT)   :: iostat
+        CHARACTER(LEN=*), INTENT(INOUT) :: iomsg
+
+        END SUBROUTINE tensor_read_unformatted
+
+        MODULE SUBROUTINE tensor_write_formatted (me, unit, iotype, v_list, iostat, iomsg)
         !! author: Ian Porter
         !! date: 12/13/2017
         !!
-        !! Subroutine performs the write for a tensor attribute
+        !! Subroutine performs the formatted write for a tensor attribute
         !!
         CLASS(tensor),    INTENT(IN)    :: me
         INTEGER(i4k),     INTENT(IN)    :: unit
@@ -501,7 +600,20 @@ procedure :: write_unformatted
         INTEGER(i4k),     INTENT(OUT)   :: iostat
         CHARACTER(LEN=*), INTENT(INOUT) :: iomsg
 
-        END SUBROUTINE tensor_write
+        END SUBROUTINE tensor_write_formatted
+
+        MODULE SUBROUTINE tensor_write_unformatted (me, unit, iostat, iomsg)
+        !! author: Ian Porter
+        !! date: 3/25/2019
+        !!
+        !! Subroutine performs the unformatted write for a tensor attribute
+        !!
+        CLASS(tensor),    INTENT(IN)    :: me
+        INTEGER(i4k),     INTENT(IN)    :: unit
+        INTEGER(i4k),     INTENT(OUT)   :: iostat
+        CHARACTER(LEN=*), INTENT(INOUT) :: iomsg
+
+        END SUBROUTINE tensor_write_unformatted
 
         MODULE SUBROUTINE tensor_setup (me, dataname, datatype, values3d)
         !! author: Ian Porter
@@ -530,11 +642,11 @@ procedure :: write_unformatted
 !********
 ! Fields
 !********
-        MODULE SUBROUTINE field_read (me, unit, iotype, v_list, iostat, iomsg)
+        MODULE SUBROUTINE field_read_formatted (me, unit, iotype, v_list, iostat, iomsg)
         !! author: Ian Porter
         !! date: 12/14/2017
         !!
-        !! Subroutine performs the read for a field attribute
+        !! Subroutine performs the formatted read for a field attribute
         !!
         CLASS(field),     INTENT(INOUT) :: me
         INTEGER(i4k),     INTENT(IN)    :: unit
@@ -543,13 +655,26 @@ procedure :: write_unformatted
         INTEGER(i4k),     INTENT(OUT)   :: iostat
         CHARACTER(LEN=*), INTENT(INOUT) :: iomsg
 
-        END SUBROUTINE field_read
+        END SUBROUTINE field_read_formatted
 
-        MODULE SUBROUTINE field_write (me, unit, iotype, v_list, iostat, iomsg)
+        MODULE SUBROUTINE field_read_unformatted (me, unit, iostat, iomsg)
+        !! author: Ian Porter
+        !! date: 3/25/2019
+        !!
+        !! Subroutine performs the unformatted read for a field attribute
+        !!
+        CLASS(field),     INTENT(INOUT) :: me
+        INTEGER(i4k),     INTENT(IN)    :: unit
+        INTEGER(i4k),     INTENT(OUT)   :: iostat
+        CHARACTER(LEN=*), INTENT(INOUT) :: iomsg
+
+        END SUBROUTINE field_read_unformatted
+
+        MODULE SUBROUTINE field_write_formatted (me, unit, iotype, v_list, iostat, iomsg)
         !! author: Ian Porter
         !! date: 12/13/2017
         !!
-        !! Subroutine performs the write for a field attribute
+        !! Subroutine performs the formatted write for a field attribute
         !!
         CLASS(field),     INTENT(IN)    :: me
         INTEGER(i4k),     INTENT(IN)    :: unit
@@ -558,7 +683,20 @@ procedure :: write_unformatted
         INTEGER(i4k),     INTENT(OUT)   :: iostat
         CHARACTER(LEN=*), INTENT(INOUT) :: iomsg
 
-        END SUBROUTINE field_write
+        END SUBROUTINE field_write_formatted
+
+        MODULE SUBROUTINE field_write_unformatted (me, unit, iostat, iomsg)
+        !! author: Ian Porter
+        !! date: 3/25/2019
+        !!
+        !! Subroutine performs the unformatted write for a field attribute
+        !!
+        CLASS(field),     INTENT(IN)    :: me
+        INTEGER(i4k),     INTENT(IN)    :: unit
+        INTEGER(i4k),     INTENT(OUT)   :: iostat
+        CHARACTER(LEN=*), INTENT(INOUT) :: iomsg
+
+        END SUBROUTINE field_write_unformatted
 
         MODULE SUBROUTINE field_setup (me, dataname, datatype, field_arrays)
         !! author: Ian Porter

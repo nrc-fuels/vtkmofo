@@ -38,7 +38,7 @@ SUBMODULE (vtk_cells) vtk_cells_implementation
 
         ALLOCATE(me%points(0))
 
-        READ(unit,100,iostat=iostat) line
+        READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
         end_of_file = (is_iostat_end(iostat))
         IF (end_of_file) THEN
             RETURN
@@ -71,9 +71,9 @@ SUBMODULE (vtk_cells) vtk_cells_implementation
 
         IF (ALLOCATED(me%points)) DEALLOCATE(me%points)
 
-        READ(unit,iostat=iostat) n_points
+        READ(unit,IOSTAT=iostat,IOMSG=iomsg) n_points
         ALLOCATE(me%points(n_points))
-        READ(unit,iostat=iostat) me%points(1:n_points)
+        READ(unit,IOSTAT=iostat,IOMSG=iomsg) me%points(1:n_points)
 
         END PROCEDURE read_unformatted
 
@@ -81,8 +81,8 @@ SUBMODULE (vtk_cells) vtk_cells_implementation
         !! Writes the cell information to the .vtk file
         INTEGER(i4k) :: i
 
-        WRITE(unit,100) me%n_points, (me%points(i),i=1,me%n_points)
-        WRITE(unit,101) new_line('a')
+        WRITE(unit,100,IOSTAT=iostat,IOMSG=iomsg) me%n_points, (me%points(i),i=1,me%n_points)
+        WRITE(unit,101,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
 
 100     FORMAT ((i0,' '),*(i0,' '))
 101     FORMAT ((a))
@@ -93,8 +93,8 @@ SUBMODULE (vtk_cells) vtk_cells_implementation
         !! Writes the cell information to the .vtk file
         INTEGER(i4k) :: i
 
-        WRITE(unit,iostat=iostat) me%n_points, (me%points(i),i=1,me%n_points)
-        WRITE(unit,iostat=iostat) new_line('a')
+        WRITE(unit,IOSTAT=iostat,IOMSG=iomsg) me%n_points, (me%points(i),i=1,me%n_points)
+        WRITE(unit,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
 
         END PROCEDURE write_unformatted
 
