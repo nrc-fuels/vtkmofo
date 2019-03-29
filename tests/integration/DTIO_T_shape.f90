@@ -39,7 +39,8 @@ MODULE DTIO_vtkmofo
         INTEGER(i4k)                :: i
         INTEGER(i4k),     PARAMETER :: n_points = 24, n_cells = 5
         CHARACTER(LEN=*), PARAMETER :: title    = 'Testing of T-shape unstructured grid geometry'
-        REAL(r8k), DIMENSION(n_cells, 1:n_params_to_write) :: cell_vals
+        REAL(r8k), DIMENSION(n_cells, 1:n_params_to_write) :: cell_vals = &
+          &  [ 1.0_r8k, 1.0_r8k, 5.0_r8k, 1.0_r8k, 1.0_r8k ]
         REAL(r8k), DIMENSION(n_points,1:n_params_to_write) :: point_vals
         REAL(r8k), DIMENSION(3,n_points), PARAMETER        :: points = RESHAPE ( &
           & [ 0.5_r8k, 0.0_r8k, 0.0_r8k, &
@@ -66,7 +67,6 @@ MODULE DTIO_vtkmofo
           &   0.5_r8k, 0.5_r8k, 1.5_r8k, &
           &   1.0_r8k, 0.5_r8k, 1.5_r8k, &
           &   1.5_r8k, 0.5_r8k, 1.5_r8k ], [3,n_points] )
-        REAL(r8k), PARAMETER :: temp_default = 100.0_r8k, temp_increment = 10.0_r8k
         REAL(r8k), DIMENSION(n_points), PARAMETER :: temp_norm = &
           & [ 1.0_r8k, 1.0_r8k, 1.0_r8k, 1.0_r8k, 2.0_r8k, 2.0_r8k, 2.0_r8k, 2.0_r8k, 1.0_r8k, &
           &   3.0_r8k, 3.0_r8k, 1.0_r8k, 1.0_r8k, 4.0_r8k, 4.0_r8k, 1.0_r8k, 1.0_r8k, 2.0_r8k, &
@@ -99,6 +99,8 @@ MODULE DTIO_vtkmofo
         ALLOCATE(cell_list(5)%cell,source=hexahedron_cell)
 
         CALL t_shape%init (points=points, cell_list=cell_list)
+
+        point_vals(:,1) = 500.0_r8k
 
         DO i = 1, n_params_to_write
             ! Cell values

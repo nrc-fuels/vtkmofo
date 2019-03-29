@@ -37,9 +37,9 @@ SUBMODULE (vtk_io) vtk_io_implementation
             END IF
         END IF
         IF (PRESENT(title)) THEN
-            vtktitle    = title                            !! Calling program provided a title
+            vtktitle = title                               !! Calling program provided a title
         ELSE
-            vtktitle    = default_title                    !! Calling program did not provide a title. Use default
+            vtktitle = default_title                       !! Calling program did not provide a title. Use default
         END IF
 
         INQUIRE(unit = unit, opened = file_is_open, form=form) 
@@ -72,30 +72,30 @@ SUBMODULE (vtk_io) vtk_io_implementation
             END SELECT
         END IF
 
-        WRITE(unit,100) version                            !! VTK version (currently, 3.0)
-        WRITE(unit,100) vtktitle                           !! VTK title card
-        WRITE(unit,100) filetype_text                      !! VTK file type
+        WRITE(unit,100) version // new_line('a')           !! VTK version (currently, 3.0)
+        WRITE(unit,100) vtktitle // new_line('a')          !! VTK title card
+        WRITE(unit,100) filetype_text // new_line('a')     !! VTK file type
 
         WRITE(unit,FMT='(DT)') geometry                    !! Write the geometry information
 
         IF (PRESENT(celldatasets)) THEN
-            WRITE(unit,101) celldatasets(1)%n
+            WRITE(unit,101) celldatasets(1)%n, new_line('a')
             DO i = 1, SIZE(celldatasets)
                 WRITE(unit,FMT='(DT)') celldatasets(i)%attribute
                                                            !! Write the cell data values
             END DO
         ELSE IF (PRESENT(celldata)) THEN
-            WRITE(unit,101) celldatasets(1)%n
+            WRITE(unit,101) celldatasets(1)%n, new_line('a')
             WRITE(unit,FMT='(DT)') celldata                !! Write the cell data values
         END IF
 
         IF (PRESENT(pointdatasets)) THEN
-            WRITE(unit,102) pointdatasets(1)%n
+            WRITE(unit,102) pointdatasets(1)%n, new_line('a')
             DO I = 1, SIZE(pointdatasets)
                 WRITE(unit,'(DT)') pointdatasets(i)%attribute
             END DO
         ELSE IF (PRESENT(pointdata)) THEN
-            WRITE(unit,102) pointdatasets(1)%n
+            WRITE(unit,102) pointdatasets(1)%n, new_line('a')
             WRITE(unit,FMT='(DT)') pointdata               !! Write the point data values
         END IF
 
@@ -104,8 +104,8 @@ SUBMODULE (vtk_io) vtk_io_implementation
         END IF
 
 100     FORMAT(a)
-101     FORMAT('CELL_DATA ',i0)
-102     FORMAT('POINT_DATA ',i0)
+101     FORMAT('CELL_DATA ',i0,(a))
+102     FORMAT('POINT_DATA ',i0,(a))
 
         END PROCEDURE vtk_legacy_write
 
