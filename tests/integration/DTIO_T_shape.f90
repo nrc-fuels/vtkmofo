@@ -9,6 +9,7 @@ MODULE DTIO_vtkmofo
 
     TYPE foo
         !! foo dt
+        integer :: dummy
     CONTAINS
         PROCEDURE, PRIVATE :: write_formatted
         GENERIC, PUBLIC :: WRITE(FORMATTED) => write_formatted
@@ -116,7 +117,7 @@ MODULE DTIO_vtkmofo
             END IF
             CALL point_vals_to_write(i)%attribute%init (TRIM(point_dataname(i)), numcomp=1, values1d=point_vals(:,i))
         END DO
-
+write(0,*) 'before vtk_legacy_write, unit= ',unit
         CALL vtk_legacy_write (unit, t_shape, celldatasets=cell_vals_to_write, pointdatasets=point_vals_to_write, &
           &                    title=title, multiple_io=.FALSE.)
 
@@ -155,14 +156,14 @@ PROGRAM DTIO_T_shape_test
     TYPE(foo) :: foo_dt
     CHARACTER(LEN=*), PARAMETER :: filename = 'dtio_t_shape.vtk'
 
-    OPEN(newunit=unit, file=filename, status='unknown', form='formatted')
-    WRITE(unit,'(DT)') foo_dt
-
+    OPEN(newunit=unit, file=filename, status='replace', form='formatted')
+    WRITE(unit,FMT='(DT)') foo_dt
+write(0,*) 'after write foo_dt'
     CLOSE(unit)
 
     OPEN(newunit=unit, file=filename, status='old', form='formatted')
-    READ(unit,'(DT)') foo_dt
-
+    READ(unit,FMT='(DT)') foo_dt
+write(0,*) 'after read foo_dt'
     WRITE(*,*) 'Finished'
 
 END PROGRAM DTIO_T_shape_test
