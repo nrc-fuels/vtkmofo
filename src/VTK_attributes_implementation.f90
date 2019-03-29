@@ -322,7 +322,6 @@ write(0,*) 'line= ',line
         SELECT CASE (iotype)
         CASE ('DT')
             WRITE(unit,100,IOSTAT=iostat,IOMSG=iomsg) me%dataname, me%datatype, me%numcomp, new_line('(a)')
-            WRITE(unit,100,IOSTAT=iostat,IOMSG=iomsg) me%dataname, me%datatype, me%numcomp, new_line('(a)')
             WRITE(unit,101,IOSTAT=iostat,IOMSG=iomsg) me%tablename, new_line('a')
             IF (ALLOCATED(me%reals)) THEN
                 DO i = 1, SIZE(me%reals)
