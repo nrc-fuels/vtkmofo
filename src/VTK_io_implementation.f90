@@ -19,7 +19,8 @@ SUBMODULE (vtk_io) vtk_io_implementation
         INTEGER(i4k)     :: i, inputstat
         LOGICAL          :: file_is_open
         CHARACTER(LEN=8) :: fcnt_char = ''
-        CHARACTER(LEN=:), ALLOCATABLE :: form, filetype_text
+        CHARACTER(LEN=:), ALLOCATABLE :: filetype_text
+        CHARACTER(LEN=11) :: form
 
         IF (PRESENT(data_type)) filetype    = data_type    !! Calling program provided what file type to use for vtk file
         IF (PRESENT(filename)) THEN
@@ -41,18 +42,31 @@ SUBMODULE (vtk_io) vtk_io_implementation
             vtktitle    = default_title                    !! Calling program did not provide a title. Use default
         END IF
 
-        INQUIRE(unit = unit, opened = file_is_open)        !! Check to see if file is already open
-        IF (.NOT. file_is_open) THEN                       !! File is not yet open. Determine format to open file
+        INQUIRE(unit = unit, opened = file_is_open, form=form) 
+                                                           !! Check to see if file is already open
+                                                           !! File is not yet open. Determine format to open file
+        IF (file_is_open) THEN
+            SELECT CASE (TO_UPPERCASE(form))
+            CASE ('FORMATTED')
+                filetype_text = 'ASCII'
+            CASE ('UNFORMATTED')
+                filetype_text = 'BINARY'
+            CASE ('UNDEFINED')
+                ERROR STOP 'Undefined form means no connection. Terminated in vtk_legacy_write'
+            CASE DEFAULT
+                ERROR STOP 'Unsupported value of form in vtk_legacy_write'
+            END SELECT
+        ELSE
             SELECT CASE (filetype)
             CASE (ascii)
                 filetype_text = 'ASCII'
                 OPEN(unit=unit, file=vtkfilename,IOSTAT=inputstat, status='unknown', form='formatted')
-                                                               !! Open the VTK file
+                                                           !! Open the VTK file
             CASE (binary)
                 filetype_text = 'BINARY'
                 OPEN(unit=unit, file=vtkfilename,IOSTAT=inputstat, status='unknown', form='binary', &
                   &  access='stream')
-                                                               !! Open the VTK file
+                                                           !! Open the VTK file
             CASE DEFAULT
                 ERROR STOP 'Bad input for filetype. Execution terminated in vtk_legacy_write'
             END SELECT
@@ -67,11 +81,12 @@ SUBMODULE (vtk_io) vtk_io_implementation
         IF (PRESENT(celldatasets)) THEN
             WRITE(unit,101) celldatasets(1)%n
             DO i = 1, SIZE(celldatasets)
-                WRITE(unit,*) celldatasets(i)%attribute    !! Write the cell data values
+                WRITE(unit,FMT='(DT)') celldatasets(i)%attribute
+                                                           !! Write the cell data values
             END DO
         ELSE IF (PRESENT(celldata)) THEN
             WRITE(unit,101) celldatasets(1)%n
-            WRITE(unit,*) celldata                         !! Write the cell data values
+            WRITE(unit,FMT='(DT)') celldata                !! Write the cell data values
         END IF
 
         IF (PRESENT(pointdatasets)) THEN
@@ -81,7 +96,7 @@ SUBMODULE (vtk_io) vtk_io_implementation
             END DO
         ELSE IF (PRESENT(pointdata)) THEN
             WRITE(unit,102) pointdatasets(1)%n
-            WRITE(unit,*) pointdata                        !! Write the point data values
+            WRITE(unit,FMT='(DT)') pointdata               !! Write the point data values
         END IF
 
         IF (.NOT. file_is_open) THEN

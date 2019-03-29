@@ -30,36 +30,47 @@ SUBMODULE (vtk_cells) vtk_cells_implementation
 
         MODULE PROCEDURE read_formatted
         USE Misc, ONLY : interpret_string, def_len
+        USE ISO_FORTRAN_ENV, ONLY : IOSTAT_END, IOSTAT_EOR
         !! Subroutine performs the read for a cell
-        INTEGER(i4k)           :: i
+        INTEGER(i4k)           :: i, line_size
         LOGICAL                :: end_of_file, ierr
         CHARACTER(LEN=def_len) :: line
         INTEGER(i4k), DIMENSION(:), ALLOCATABLE :: ints, dummy, points
 
+        IF (SIZE(v_list) > 0) THEN
+            !! At some point, do something with v_list
+        END IF
+
         ALLOCATE(me%points(0))
 
-        READ(unit,100,IOSTAT=iostat,IOMSG=iomsg) line
-        end_of_file = (is_iostat_end(iostat))
-        IF (end_of_file) THEN
-            RETURN
-        ELSE
-            i = 0
-            get_vals: DO
-                i = i + 1
-                CALL interpret_string (line=line, datatype=[ 'I' ], separator=' ', ints=ints)
-                IF (i == 1) THEN
-                    CALL me%init(ints(1), ierr)
-                ELSE
-                    ALLOCATE(dummy(1:i-1))
-                    dummy(i-1) = ints(1)
-                    IF (i > 2) dummy(1:i-2) = points
-                    IF (ALLOCATED(points)) DEALLOCATE(points)
-                    CALL MOVE_ALLOC(dummy, points)
-                END IF
-                IF (line == '') EXIT get_vals
-            END DO get_vals
-            me%points = points
-        END IF
+        SELECT CASE (iotype)
+        CASE ('DT')
+            READ(unit,100,IOSTAT=iostat,IOMSG=iomsg,size=line_size,advance='no') line
+            IF (iostat == iostat_end .OR. iostat == iostat_eor) iostat = 0
+            end_of_file = (is_iostat_end(iostat))
+            IF (end_of_file) THEN
+                RETURN
+            ELSE
+                i = 0
+                get_vals: DO
+                    i = i + 1
+                    CALL interpret_string (line=line, datatype=[ 'I' ], separator=' ', ints=ints)
+                    IF (i == 1) THEN
+                        CALL me%init(ints(1), ierr)
+                    ELSE
+                        ALLOCATE(dummy(1:i-1))
+                        dummy(i-1) = ints(1)
+                        IF (i > 2) dummy(1:i-2) = points
+                        IF (ALLOCATED(points)) DEALLOCATE(points)
+                        CALL MOVE_ALLOC(dummy, points)
+                    END IF
+                    IF (line == '') EXIT get_vals
+                END DO get_vals
+                me%points = points
+            END IF
+        CASE DEFAULT
+            ERROR STOP 'iotype not supported. Terminated in read_formatted'
+        END SELECT
 
 100     FORMAT((a))
         END PROCEDURE read_formatted
@@ -81,12 +92,20 @@ SUBMODULE (vtk_cells) vtk_cells_implementation
         !! Writes the cell information to the .vtk file
         INTEGER(i4k) :: i
 
-        WRITE(unit,100,IOSTAT=iostat,IOMSG=iomsg) me%n_points, (me%points(i),i=1,me%n_points)
-        WRITE(unit,101,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
+        IF (SIZE(v_list) > 0) THEN
+            !! At some point, do something with v_list
+        END IF
+
+        SELECT CASE (iotype)
+        CASE ('DT')
+            WRITE(unit,100,IOSTAT=iostat,IOMSG=iomsg) me%n_points, (me%points(i),i=1,me%n_points)
+            WRITE(unit,101,IOSTAT=iostat,IOMSG=iomsg) new_line('a')
+        CASE DEFAULT
+            ERROR STOP 'iotype not supported. Terminated in write_formatted'
+        END SELECT
 
 100     FORMAT ((i0,' '),*(i0,' '))
 101     FORMAT ((a))
-
         END PROCEDURE write_formatted
 
         MODULE PROCEDURE write_unformatted

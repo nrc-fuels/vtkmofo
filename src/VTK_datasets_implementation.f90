@@ -179,7 +179,7 @@ SUBMODULE (vtk_datasets) vtk_datasets_implementation
 
         MODULE PROCEDURE struct_pts_write_formatted
         CHARACTER(LEN=:), ALLOCATABLE :: my_new_line
-        INTEGER(i4k), DIMENSION(:), ALLOCATABLE :: dims
+
 !        INTEGER(i4k) :: l
         !! Writes the structured points dataset information to the .vtk file
         WRITE(unit,100,IOSTAT=iostat,IOMSG=iomsg) me%name, new_line('a')
