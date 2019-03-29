@@ -68,6 +68,7 @@ MODULE DTIO_vtkmofo
           &   0.5_r8k, 0.5_r8k, 1.5_r8k, &
           &   1.0_r8k, 0.5_r8k, 1.5_r8k, &
           &   1.5_r8k, 0.5_r8k, 1.5_r8k ], [3,n_points] )
+        REAL(r8k), PARAMETER :: temp_default = 100.0_r8k, temp_increment = 10.0_r8k
         REAL(r8k), DIMENSION(n_points), PARAMETER :: temp_norm = &
           & [ 1.0_r8k, 1.0_r8k, 1.0_r8k, 1.0_r8k, 2.0_r8k, 2.0_r8k, 2.0_r8k, 2.0_r8k, 1.0_r8k, &
           &   3.0_r8k, 3.0_r8k, 1.0_r8k, 1.0_r8k, 4.0_r8k, 4.0_r8k, 1.0_r8k, 1.0_r8k, 2.0_r8k, &
@@ -117,7 +118,7 @@ MODULE DTIO_vtkmofo
             END IF
             CALL point_vals_to_write(i)%attribute%init (TRIM(point_dataname(i)), numcomp=1, values1d=point_vals(:,i))
         END DO
-write(0,*) 'before vtk_legacy_write, unit= ',unit
+
         CALL vtk_legacy_write (unit, t_shape, celldatasets=cell_vals_to_write, pointdatasets=point_vals_to_write, &
           &                    title=title, multiple_io=.FALSE.)
 
@@ -158,12 +159,11 @@ PROGRAM DTIO_T_shape_test
 
     OPEN(newunit=unit, file=filename, status='replace', form='formatted')
     WRITE(unit,FMT='(DT)') foo_dt
-write(0,*) 'after write foo_dt'
     CLOSE(unit)
 
     OPEN(newunit=unit, file=filename, status='old', form='formatted')
     READ(unit,FMT='(DT)') foo_dt
-write(0,*) 'after read foo_dt'
+
     WRITE(*,*) 'Finished'
 
 END PROGRAM DTIO_T_shape_test
