@@ -39,8 +39,8 @@ MODULE DTIO_vtkmofo
         INTEGER(i4k)                :: i
         INTEGER(i4k),     PARAMETER :: n_points = 24, n_cells = 5
         CHARACTER(LEN=*), PARAMETER :: title    = 'Testing of T-shape unstructured grid geometry'
-        REAL(r8k), DIMENSION(n_cells, 1:n_params_to_write) :: cell_vals = &
-          &  [ 1.0_r8k, 1.0_r8k, 5.0_r8k, 1.0_r8k, 1.0_r8k ]
+        REAL(r8k), DIMENSION(n_cells, 1:n_params_to_write) :: cell_vals = RESHAPE ( &
+          &  [ 1.0_r8k, 1.0_r8k, 5.0_r8k, 1.0_r8k, 1.0_r8k ], [n_cells,n_params_to_write])
         REAL(r8k), DIMENSION(n_points,1:n_params_to_write) :: point_vals
         REAL(r8k), DIMENSION(3,n_points), PARAMETER        :: points = RESHAPE ( &
           & [ 0.5_r8k, 0.0_r8k, 0.0_r8k, &

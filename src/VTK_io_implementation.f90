@@ -42,7 +42,7 @@ SUBMODULE (vtk_io) vtk_io_implementation
             vtktitle = default_title                       !! Calling program did not provide a title. Use default
         END IF
 
-        INQUIRE(unit = unit, opened = file_is_open, form=form) 
+        INQUIRE(unit = unit, opened = file_is_open, form=form)
                                                            !! Check to see if file is already open
                                                            !! File is not yet open. Determine format to open file
         IF (file_is_open) THEN
@@ -72,31 +72,31 @@ SUBMODULE (vtk_io) vtk_io_implementation
             END SELECT
         END IF
 
-        WRITE(unit,100) version // new_line('a')           !! VTK version (currently, 3.0)
-        WRITE(unit,100) vtktitle // new_line('a')          !! VTK title card
-        WRITE(unit,100) filetype_text // new_line('a')     !! VTK file type
+        WRITE(unit,100,advance="no") version // new_line('a')           !! VTK version (currently, 3.0)
+        WRITE(unit,100,advance="no") vtktitle // new_line('a')          !! VTK title card
+        WRITE(unit,100,advance="no") filetype_text // new_line('a')     !! VTK file type
 
-        WRITE(unit,FMT='(DT)') geometry                    !! Write the geometry information
+        WRITE(unit,FMT='(DT)',advance="no") geometry                    !! Write the geometry information
 
         IF (PRESENT(celldatasets)) THEN
-            WRITE(unit,101) celldatasets(1)%n, new_line('a')
+            WRITE(unit,101,advance="no") celldatasets(1)%n, new_line('a')
             DO i = 1, SIZE(celldatasets)
-                WRITE(unit,FMT='(DT)') celldatasets(i)%attribute
+                WRITE(unit,FMT='(DT)',advance="no") celldatasets(i)%attribute
                                                            !! Write the cell data values
             END DO
         ELSE IF (PRESENT(celldata)) THEN
-            WRITE(unit,101) celldatasets(1)%n, new_line('a')
-            WRITE(unit,FMT='(DT)') celldata                !! Write the cell data values
+            WRITE(unit,101,advance="no") celldatasets(1)%n, new_line('a')
+            WRITE(unit,FMT='(DT)',advance="no") celldata                !! Write the cell data values
         END IF
 
         IF (PRESENT(pointdatasets)) THEN
-            WRITE(unit,102) pointdatasets(1)%n, new_line('a')
+            WRITE(unit,102,advance="no") pointdatasets(1)%n, new_line('a')
             DO I = 1, SIZE(pointdatasets)
-                WRITE(unit,'(DT)') pointdatasets(i)%attribute
+                WRITE(unit,'(DT)',advance="no") pointdatasets(i)%attribute
             END DO
         ELSE IF (PRESENT(pointdata)) THEN
-            WRITE(unit,102) pointdatasets(1)%n, new_line('a')
-            WRITE(unit,FMT='(DT)') pointdata               !! Write the point data values
+            WRITE(unit,102,advance="no") pointdatasets(1)%n, new_line('a')
+            WRITE(unit,FMT='(DT)',advance="no") pointdata               !! Write the point data values
         END IF
 
         IF (.NOT. file_is_open) THEN
